@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { NotesProvider, useNotes } from './NotesContext';
+import FloatingToolbar from './FloatingToolbar';
 import './index.css';
 
 function formatDate(dateString) {
@@ -8,13 +9,54 @@ function formatDate(dateString) {
     ' ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
-function NotesSidebar({ notes, selectedId, onSelect, onAdd }) {
+function NotesSidebar({ notes, selectedId, onSelect, onAdd, isMobileOpen, onMobileClose }) {
+
+  const handleSelect = (id) => {
+    onSelect(id);
+    if (isMobileOpen) {
+      onMobileClose();
+    }
+  };
+
+  const handleAddInternal = () => {
+    onAdd();
+    if (isMobileOpen) {
+      onMobileClose();
+    }
+  };
 
   return (
-    <aside className="w-60 bg-[var(--bg-secondary)] border-r border-[var(--border)] flex flex-col shadow-none m-4 mb-0 rounded-lg font-mono">
+    <>
+      {/* Overlay for mobile when sidebar is open */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50 sm:hidden"
+          onClick={onMobileClose}
+          aria-hidden="true"
+        ></div>
+      )}
+      <aside
+        className={`
+          bg-[var(--bg-secondary)] border-[var(--border)] font-mono flex flex-col shadow-none 
+          fixed inset-y-0 right-0 z-40 w-4/5 max-w-[280px] 
+          transform transition-transform duration-300 ease-in-out
+          ${isMobileOpen ? 'translate-x-0' : 'translate-x-full'}
+          border-l 
+          sm:relative sm:left-auto sm:right-auto sm:translate-x-0 sm:w-60 sm:max-w-none
+          sm:m-4 sm:mb-0 sm:rounded-lg 
+          sm:border-l-0 sm:border-b-0 sm:border-r 
+          ${isMobileOpen ? 'flex' : 'hidden'} sm:flex 
+        `}
+      >
+        {/* Close button for mobile (visible only on mobile, inside the sidebar) */}
+        <div className="sm:hidden flex justify-end p-2">
+          <button onClick={onMobileClose} className="p-2 text-[var(--text-primary)] hover:bg-[var(--hover)] rounded">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
       <button
         className="w-full p-4 text-left border-b border-[var(--border)] hover:bg-[var(--hover)] hover:rounded-t-lg transition-colors flex items-center justify-between group font-mono tracking-tight text-base rounded-t-lg"
-        onClick={onAdd}
+        onClick={handleAddInternal}
         title="Add a new note"
       >
         <span className="font-semibold text-lg text-[var(--text-primary)] font-mono tracking-tight">New Note</span>
@@ -22,7 +64,7 @@ function NotesSidebar({ notes, selectedId, onSelect, onAdd }) {
           ＋
         </span>
       </button>
-      <ul className="flex-1 overflow-y-auto divide-y divide-[var(--border)] bg-[var(--bg-tertiary)] rounded-b-lg font-mono">
+      <ul className="flex-1 overflow-x-auto sm:overflow-y-auto divide-y divide-[var(--border)] bg-[var(--bg-tertiary)] rounded-b-none sm:rounded-b-lg font-mono whitespace-nowrap sm:whitespace-normal">
         {notes.length === 0 && (
           <li className="px-4 py-3 text-xs text-[var(--text-muted)] italic font-mono">Add new note to begin</li>
         )}
@@ -34,7 +76,7 @@ function NotesSidebar({ notes, selectedId, onSelect, onAdd }) {
                 ? 'bg-[var(--selected)] border-l-4 border-[var(--accent)]' 
                 : 'hover:bg-[var(--hover)]'
             }`}
-            onClick={() => onSelect(note.id)}
+            onClick={() => handleSelect(note.id)}
           >
             <div className="px-4 py-3">
               <h3 className="font-semibold text-[var(--text-primary)] truncate font-mono">
@@ -48,6 +90,7 @@ function NotesSidebar({ notes, selectedId, onSelect, onAdd }) {
         ))}
       </ul>
     </aside>
+    </>
   );
 }
 
@@ -83,6 +126,82 @@ function NoteEditor({ note, onSave, onDelete }) {
   const [title, setTitle] = useState(note?.title || '');
   const [blocks, setBlocks] = useState(note?.blocks && note.blocks.length > 0 ? note.blocks : defaultBlocks);
   const [stats, setStats] = useState({ words: 0, lines: 0 });
+  const [focusedBlockIdx, setFocusedBlockIdx] = useState(null);
+  const textareaRefs = useRef([]);
+
+  // Helper: Apply formatting to text
+  const applyFormatting = (text, action) => {
+    switch (action) {
+      case 'bold':
+        return wrapSelection(text, '**');
+      case 'italic':
+        return wrapSelection(text, '*');
+      case 'underline':
+        return wrapSelection(text, '__');
+      case 'strike':
+        return wrapSelection(text, '~~');
+      case 'h1':
+        return '# ' + text;
+      case 'h2':
+        return '## ' + text;
+      case 'h3':
+        return '### ' + text;
+      case 'h4':
+        return '#### ' + text;
+      case 'h5':
+        return '##### ' + text;
+      case 'h6':
+        return '###### ' + text;
+      case 'paragraph':
+        return text.replace(/^#+\s+/,'');
+      case 'bullet':
+        return text.startsWith('- ') ? text : '- ' + text;
+      case 'numbered':
+        return text.match(/^\d+\. /) ? text : '1. ' + text;
+      case 'checkbox':
+        return text.startsWith('- [ ] ') ? text : '- [ ] ' + text;
+      case 'quote':
+        return text.startsWith('> ') ? text : '> ' + text;
+      case 'codeblock':
+        return '```\n' + text + '\n```';
+      case 'pre':
+        return '<pre>' + text + '</pre>';
+      case 'link':
+        return '[Link Text](https://example.com)';
+      case 'table':
+        return '| Header 1 | Header 2 |\n| --- | --- |\n| Cell 1 | Cell 2 |';
+      case 'hr':
+        return text + '\n---\n';
+      case 'inlinecode':
+        return wrapSelection(text, '`');
+      default:
+        return text;
+    }
+  };
+
+  // Helper: Wrap selection or all text
+  const wrapSelection = (text, wrapper) => {
+    return wrapper + text + wrapper;
+  };
+
+  // Handler for toolbar actions
+  const handleToolbarAction = (action) => {
+    if (focusedBlockIdx === null) return;
+    setBlocks(prevBlocks => {
+      const newBlocks = [...prevBlocks];
+      const block = { ...newBlocks[focusedBlockIdx] };
+      block.text = applyFormatting(block.text, action);
+      newBlocks[focusedBlockIdx] = block;
+      handleSave(title, newBlocks);
+      return newBlocks;
+    });
+    // Refocus the textarea after formatting
+    setTimeout(() => {
+      if (textareaRefs.current[focusedBlockIdx]) {
+        textareaRefs.current[focusedBlockIdx].focus();
+      }
+    }, 0);
+  };
 
   useEffect(() => {
     if (note) {
@@ -181,12 +300,12 @@ function NoteEditor({ note, onSave, onDelete }) {
 
   // --- Render blocks ---
   return (
-    <div className="flex flex-col h-full bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-none sm:rounded-lg overflow-hidden">
       {/* Fixed Header Area */}
       <div className="shrink-0 border-b border-[var(--border)] bg-[var(--bg-tertiary)]">
         <input
           type="text"
-          className="w-full p-4 text-2xl font-bold bg-transparent text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none font-mono tracking-tight"
+          className="w-full p-2 sm:p-4 text-lg sm:text-2xl font-bold bg-transparent text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none font-mono tracking-tight"
           placeholder="Untitled Note"
           value={title}
           onChange={handleTitleChange}
@@ -194,11 +313,11 @@ function NoteEditor({ note, onSave, onDelete }) {
       </div>
       
       {/* Scrollable Textarea Section */}
-      <div className="flex-1 min-h-0 p-4"> {/* Outer container defines space and padding for the content area */}
+      <div className="flex-1 min-h-0 p-2 sm:p-4"> {/* Outer container defines space and padding for the content area */}
         {blocks.map((block, index) => (
-          <div key={block.id} className="h-full"> {/* Wrapper for textarea, takes full height of parent */} 
+          <div key={block.id} className="h-full"> {/* Wrapper for textarea, takes full height of parent */}
             <textarea
-              className="w-full h-full p-2 bg-transparent text-[var(--text-primary)] resize-none focus:outline-none font-mono text-base leading-relaxed" // Textarea fills this wrapper, has its own padding
+              className="w-full h-full p-2 bg-transparent text-[var(--text-primary)] resize-none focus:outline-none font-mono text-base leading-relaxed"
               value={block.text}
               onChange={(e) => {
                 handleTextChange(index, e.target.value);
@@ -211,7 +330,8 @@ function NoteEditor({ note, onSave, onDelete }) {
           </div>
         ))}
       </div>
-      
+      {/* Floating Toolbar */}
+      <FloatingToolbar onAction={handleToolbarAction} />
       {/* Fixed Footer */}
       <div className="shrink-0 border-t border-[var(--border)] bg-[var(--bg-secondary)]">
         <div className="flex items-center justify-between p-2 px-4 text-xs text-[var(--text-secondary)]">
@@ -237,15 +357,16 @@ function NoteEditor({ note, onSave, onDelete }) {
   );
 }
 
-function NotesApp() {
+const NotesApp = forwardRef(({ isMobileSidebarOpen, setIsMobileSidebarOpen }, ref) => {
   const { notes, loading, addOrUpdateNote, removeNote } = useNotes();
-  const [selectedId, setSelectedId] = useState(null);
-  const [pendingNewId, setPendingNewId] = useState(null);
+  const [selectedId, setSelectedId] = React.useState(null);
+  // const [isMobileSidebarOpen, setIsMobileSidebarOpen] = React.useState(false); // State lifted to App
+  const [pendingNewId, setPendingNewId] = React.useState(null);
 
   // Sort notes newest to oldest (with seconds precision)
   const sortedNotes = [...notes].sort((a, b) => new Date(b.created) - new Date(a.created));
 
-  useEffect(() => {
+  React.useEffect(() => {
     // If a new note was just added and appears in the list, select it
     if (pendingNewId && sortedNotes.find(n => n.id === pendingNewId)) {
       setSelectedId(pendingNewId);
@@ -263,7 +384,7 @@ function NotesApp() {
     const newNote = {
       id: now.getTime().toString(),
       title: '',
-      blocks: JSON.parse(JSON.stringify(defaultBlocks)), // Deep copy defaultBlocks
+      blocks: [{ type: 'text', text: '' }], // default block
       created: now.toISOString(),
       updated: now.toISOString(),
     };
@@ -277,7 +398,6 @@ function NotesApp() {
 
   const handleDelete = (id) => {
     removeNote(id);
-    // After deletion, select the next most recent note (newest)
     setTimeout(() => {
       const remaining = sortedNotes.filter(n => n.id !== id);
       if (remaining.length > 0) {
@@ -290,31 +410,74 @@ function NotesApp() {
 
   const selectedNote = sortedNotes.find(n => n.id === selectedId) || null;
 
+  useImperativeHandle(ref, () => ({
+    triggerAddNote: () => {
+      handleAdd();
+    }
+  }));
+
   if (loading) {
     return <div className="flex-1 flex items-center justify-center text-gray-400">Loading...</div>;
   }
 
   return (
-    <div className="flex h-[calc(100vh-72px)] gap-2 bg-[var(--bg-primary)] font-mono">
-      <NotesSidebar notes={sortedNotes} selectedId={selectedId} onSelect={setSelectedId} onAdd={handleAdd} />
-      <main className="note-editor-container flex-1 relative flex flex-col bg-[var(--bg-secondary)] shadow-none m-4 ml-0 p-6 border border-[var(--border)] rounded-lg font-mono">
+    <div className="flex flex-col sm:flex-row h-[calc(100vh-56px)] sm:h-[calc(100vh-72px)] gap-0 sm:gap-2 bg-[var(--bg-primary)] font-mono">
+      <NotesSidebar
+        notes={sortedNotes}
+        selectedId={selectedId}
+        onSelect={setSelectedId}
+        onAdd={handleAdd}
+        isMobileOpen={isMobileSidebarOpen}
+        onMobileClose={() => setIsMobileSidebarOpen(false)}
+      />
+      <main className={`
+        note-editor-container flex-1 relative flex flex-col 
+        bg-[var(--bg-secondary)] shadow-none 
+        m-0 p-2 
+        sm:m-4 sm:ml-0 sm:p-6
+        border border-[var(--border)] rounded-none sm:rounded-lg font-mono
+        transition-opacity duration-300 ease-in-out 
+        ${isMobileSidebarOpen ? 'opacity-50 pointer-events-none sm:opacity-100 sm:pointer-events-auto' : 'opacity-100 pointer-events-auto'}
+      `}>
         <NoteEditor note={selectedNote} onSave={handleSave} onDelete={handleDelete} />
       </main>
     </div>
   );
-}
-
+});
 
 function App() {
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = React.useState(false);
+  const notesAppRef = React.useRef(null);
   return (
     <NotesProvider>
       <div className="min-h-screen flex flex-col">
-        <header className="app-header flex items-center justify-between p-4 border-b bg-[var(--bg-primary)] border-[var(--border)] backdrop-blur-md sticky top-0 z-10 font-mono">
+        <header className="app-header flex items-center justify-between p-4 border-b bg-[var(--bg-primary)] border-[var(--border)] backdrop-blur-md sticky top-0 z-20 font-mono">
           <h1 className="app-logo font-mono font-bold text-2xl tracking-tight text-[var(--text-primary)]">&lt;taskmark&gt;</h1>
-
+          <div className="flex items-center sm:hidden">
+            <button
+              onClick={() => {
+                if (notesAppRef.current && notesAppRef.current.triggerAddNote) {
+                  notesAppRef.current.triggerAddNote();
+                }
+                setIsMobileSidebarOpen(false); // Close sidebar after triggering add note
+              }}
+              className="p-2 rounded text-[var(--text-primary)] hover:bg-[var(--hover)]"
+              aria-label="Add new note"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            </button>
+            <button
+              onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+              className="p-2 ml-1 rounded text-[var(--text-primary)] hover:bg-[var(--hover)]"
+              aria-label="Toggle sidebar"
+              aria-expanded={isMobileSidebarOpen}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+          </div>
         </header>
         <main className="flex-1 bg-[var(--bg-primary)]">
-          <NotesApp />
+          <NotesApp ref={notesAppRef} isMobileSidebarOpen={isMobileSidebarOpen} setIsMobileSidebarOpen={setIsMobileSidebarOpen} />
         </main>
       </div>
     </NotesProvider>
