@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Permanent Dark Mode Palette */
+:root {
+  --bg-primary: #1A3636;
+  --bg-secondary: #40534C;
+  --bg-tertiary: #2E4B4B; /* Derived for distinct surfaces */
+  --text-primary: #D6BD98;
+  --text-secondary: #a9997c; /* Derived for less prominent text */
+  --text-muted: #677D6A;
+  --accent: #D6BD98;
+  --accent-light: #EFE1C3; /* Derived for hover on accents */
+  --border: #677D6A;
+  --hover: #52685E; /* Derived for list item hover */
+  --selected: #52685E; /* Can be same as hover or slightly more prominent */
+
+  /* Delete Button Specific Styles */
+  --button-delete-bg: rgba(251, 245, 233, 0.8); /* Lighter than logo for background with transparency */
+  --button-delete-bg-hover: rgba(239, 225, 195, 0.9); /* Slightly darker for hover, less transparent */
+  --button-delete-icon: #C62828; /* Dark red for icon */
+  --button-delete-icon-hover: #B71C1C; /* Slightly darker icon for hover */
+}
+
+html {
+  min-height: 100%;
+  font-family: 'Fira Code', 'Fira Mono', 'JetBrains Mono', 'Menlo', 'Consolas', monospace;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+body {
+  font-family: 'Fira Code', 'Fira Mono', 'JetBrains Mono', 'Menlo', 'Consolas', monospace;
+}
+
+* {
+  font-family: 'Fira Code', 'Fira Mono', 'JetBrains Mono', 'Menlo', 'Consolas', monospace !important;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  /* Removed backdrop-filter for a flatter, code-editor look */
+  transition: background 0.3s, color 0.3s; /* Keep transitions for smoothness if any dynamic changes occur */
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary); /* Use a darker track */
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border); /* Use border color for thumb */
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted); /* Use muted text color for hover */
+}
+
+/* Base Typography (optional, can be handled by Tailwind in JSX) */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+}
+
+p {
+  color: var(--text-secondary);
+}
+
+a {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+a:hover {
+  color: var(--accent-light);
+}
