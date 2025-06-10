@@ -59,7 +59,7 @@ function NotesSidebar({ notes, selectedId, onSelect, onAdd, isMobileOpen, onMobi
         title="Add a new note"
       >
         <span className="font-semibold text-lg text-[var(--text-primary)] font-mono tracking-tight">New Note</span>
-        <span className="w-7 h-7 flex items-center justify-center text-[var(--accent)] group-hover:text-white bg-[var(--bg-tertiary)] rounded transition-colors">
+        <span className="w-7 h-7 flex items-center justify-center text-[var(--accent)] bg-[var(--bg-tertiary)] rounded transition-colors">
           ＋
         </span>
       </button>
@@ -444,33 +444,80 @@ const NotesApp = forwardRef(({ isMobileSidebarOpen, setIsMobileSidebarOpen }, re
 
 function App() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = React.useState(false);
+  const [theme, setTheme] = React.useState(() => {
+    return localStorage.getItem('theme') || 'pastel';
+  });
   const notesAppRef = React.useRef(null);
+
+  React.useEffect(() => {
+    // Remove all theme classes first
+    document.documentElement.classList.remove('theme-pastel', 'theme-light', 'theme-dark');
+    // Add the current theme class
+    document.documentElement.classList.add(`theme-${theme}`);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  // Cycle through themes: pastel -> light -> dark -> pastel
+  const cycleTheme = () => {
+    setTheme((prev) => {
+      if (prev === 'pastel') return 'light';
+      if (prev === 'light') return 'dark';
+      return 'pastel';
+    });
+  };
+
+  // Icon for current theme
+  const themeIcon =
+    theme === 'pastel' ? (
+      // Palette icon
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3C7 3 3 7 3 12c0 3.866 3.134 7 7 7h1a3 3 0 003-3v-1a1 1 0 011-1h1a3 3 0 003-3c0-5-4-9-9-9z" /><circle cx="8.5" cy="10.5" r="1.5" fill="#a084e8" /><circle cx="15.5" cy="10.5" r="1.5" fill="#c3b6f7" /><circle cx="12" cy="15" r="1.5" fill="#b5a8c9" /></svg>
+    ) : theme === 'light' ? (
+      // Sun icon
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="5" fill="#FFD600" /><path stroke="#FFD600" strokeWidth="2" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M17.66 17.66l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M17.66 6.34l1.42-1.42" /></svg>
+    ) : (
+      // Moon icon
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke="#c3b6f7" strokeWidth="2" d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" /></svg>
+    );
+
   return (
     <NotesProvider>
       <div className="min-h-screen flex flex-col">
         <header className="app-header flex items-center justify-between p-4 border-b bg-[var(--bg-primary)] border-[var(--border)] backdrop-blur-md sticky top-0 z-20 font-mono">
           <h1 className="app-logo font-mono font-bold text-2xl tracking-tight text-[var(--text-primary)]">&lt;taskmark&gt;</h1>
-          <div className="flex items-center sm:hidden">
+          <div className="flex items-center gap-2">
+            {/* Theme Switcher Icon */}
             <button
-              onClick={() => {
-                if (notesAppRef.current && notesAppRef.current.triggerAddNote) {
-                  notesAppRef.current.triggerAddNote();
-                }
-                setIsMobileSidebarOpen(false); // Close sidebar after triggering add note
-              }}
-              className="p-2 rounded text-[var(--text-primary)] hover:bg-[var(--hover)]"
-              aria-label="Add new note"
+              onClick={cycleTheme}
+              className="p-2 ml-2 rounded text-[var(--text-primary)] hover:bg-[var(--hover)]"
+              aria-label="Switch theme"
+              title={
+                theme === 'pastel' ? 'Pastel Mode' : theme === 'light' ? 'Light Mode' : 'Dark Mode'
+              }
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+              {themeIcon}
             </button>
-            <button
-              onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-              className="p-2 ml-1 rounded text-[var(--text-primary)] hover:bg-[var(--hover)]"
-              aria-label="Toggle sidebar"
-              aria-expanded={isMobileSidebarOpen}
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-            </button>
+            <div className="sm:hidden flex items-center">
+              <button
+                onClick={() => {
+                  if (notesAppRef.current && notesAppRef.current.triggerAddNote) {
+                    notesAppRef.current.triggerAddNote();
+                  }
+                  setIsMobileSidebarOpen(false); // Close sidebar after triggering add note
+                }}
+                className="p-2 rounded text-[var(--text-primary)] hover:bg-[var(--hover)]"
+                aria-label="Add new note"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+              </button>
+              <button
+                onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+                className="p-2 ml-1 rounded text-[var(--text-primary)] hover:bg-[var(--hover)]"
+                aria-label="Toggle sidebar"
+                aria-expanded={isMobileSidebarOpen}
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+              </button>
+            </div>
           </div>
         </header>
         <main className="flex-1 bg-[var(--bg-primary)]">

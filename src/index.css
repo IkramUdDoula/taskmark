@@ -4,8 +4,63 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Permanent Dark Mode Palette */
-:root {
+/* Theme Palettes */
+:root.theme-pastel {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f3f1fc;
+  --bg-tertiary: #f9f7ff;
+  --text-primary: #2d2d2d;
+  --text-secondary: #7e6b8f;
+  --text-muted: #b5a8c9;
+  --accent: #a084e8;
+  --accent-light: #c3b6f7;
+  --selected: #e4e2f9;
+  --border: #e5e7eb;
+  --hover: #ede9fe;
+  --button-delete-bg: rgba(251, 245, 233, 0.8);
+  --button-delete-bg-hover: rgba(239, 225, 195, 0.9);
+  --button-delete-icon: #C62828;
+  --button-delete-icon-hover: #B71C1C;
+}
+
+:root.theme-light {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --bg-tertiary: #f9f9f9;
+  --text-primary: #1a1a1a;
+  --text-secondary: #555555;
+  --text-muted: #b0b0b0;
+  --accent: #0066cc;
+  --accent-light: #3b82f6;
+  --selected: #d0e1ff;
+  --border: #e5e7eb;
+  --hover: #e0e9ff;
+  --button-delete-bg: #f3f4f6;
+  --button-delete-bg-hover: #e5e7eb;
+  --button-delete-icon: #e11d48;
+  --button-delete-icon-hover: #be123c;
+}
+
+:root.theme-dark {
+  --bg-primary: #121212;
+  --bg-secondary: #1e1e1e;
+  --bg-tertiary: #252525;
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --text-muted: #6d6d6d;
+  --accent: #bb86fc;
+  --accent-light: #d1c4e9;
+  --selected: #2d2d2d;
+  --border: #333333;
+  --hover: #2a2a2a;
+  --button-delete-bg: #232336;
+  --button-delete-bg-hover: #282848;
+  --button-delete-icon: #f87171;
+  --button-delete-icon-hover: #ef4444;
+}
+
+/* Pastel is the default for now, so also set as fallback */
+:root, :root.theme-pastel {
   --bg-primary: #1A3636;
   --bg-secondary: #40534C;
   --bg-tertiary: #2E4B4B; /* Derived for distinct surfaces */
