@@ -448,6 +448,7 @@ function App() {
     return localStorage.getItem('theme') || 'pastel';
   });
   const notesAppRef = React.useRef(null);
+  const importInputRef = React.useRef(null);
 
   React.useEffect(() => {
     // Remove all theme classes first
@@ -485,6 +486,8 @@ function App() {
         <header className="app-header flex items-center justify-between p-4 border-b bg-[var(--bg-primary)] border-[var(--border)] backdrop-blur-md sticky top-0 z-20 font-mono">
           <h1 className="app-logo font-mono font-bold text-2xl tracking-tight text-[var(--text-primary)]">&lt;taskmark&gt;</h1>
           <div className="flex items-center gap-2">
+            {/* Export Notes Icon */}
+            <ExportImportButtons notesAppRef={notesAppRef} />
             {/* Theme Switcher Icon */}
             <button
               onClick={cycleTheme}
@@ -528,4 +531,80 @@ function App() {
   );
 }
 
+function ExportImportButtons({ notesAppRef }) {
+  const { notes, addOrUpdateNote, removeNote } = useNotes();
+
+  // Export notes as JSON
+  const handleExport = () => {
+    const data = JSON.stringify(notes, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'taskmark-notes.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Import notes from JSON
+  const handleImportClick = () => {
+    document.getElementById('import-notes-input').click();
+  };
+
+  const handleImport = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const importedNotes = JSON.parse(text);
+      if (!Array.isArray(importedNotes)) throw new Error('Invalid notes JSON');
+      // Remove all current notes, then add imported
+      for (const note of notes) {
+        await removeNote(note.id);
+      }
+      for (const note of importedNotes) {
+        await addOrUpdateNote(note);
+      }
+      alert('Notes imported successfully!');
+    } catch (err) {
+      alert('Failed to import notes: ' + err.message);
+    }
+    e.target.value = '';
+  };
+
+  return (
+    <>
+      <button
+        onClick={handleExport}
+        className="p-2 rounded text-[var(--text-primary)] hover:bg-[var(--hover)]"
+        title="Export notes as JSON"
+        aria-label="Export notes"
+      >
+        {/* Download/Export icon */}
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" /></svg>
+      </button>
+      <button
+        onClick={handleImportClick}
+        className="p-2 rounded text-[var(--text-primary)] hover:bg-[var(--hover)]"
+        title="Import notes from JSON"
+        aria-label="Import notes"
+        type="button"
+      >
+        {/* Upload/Import icon */}
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 20V8m0 0l-4 4m4-4l4 4M4 4h16" /></svg>
+      </button>
+      <input
+        id="import-notes-input"
+        type="file"
+        accept="application/json"
+        style={{ display: 'none' }}
+        onChange={handleImport}
+      />
+    </>
+  );
+}
+
 export default App;
+
