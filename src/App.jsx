@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { NotesProvider, useNotes } from './NotesContext';
-import FloatingToolbar from './FloatingToolbar';
 import './index.css';
 
 function formatDate(dateString) {
@@ -43,9 +42,9 @@ function NotesSidebar({ notes, selectedId, onSelect, onAdd, isMobileOpen, onMobi
           ${isMobileOpen ? 'translate-x-0' : 'translate-x-full'}
           border-l 
           sm:relative sm:left-auto sm:right-auto sm:translate-x-0 sm:w-60 sm:max-w-none
-          sm:m-4 sm:mb-0 sm:rounded-lg 
+          sm:m-4 sm:mb-4 sm:rounded-lg 
           sm:border-l-0 sm:border-b-0 sm:border-r 
-          ${isMobileOpen ? 'flex' : 'hidden'} sm:flex 
+          ${isMobileOpen ? 'flex' : 'hidden'} sm:flex
         `}
       >
         {/* Close button for mobile (visible only on mobile, inside the sidebar) */}
@@ -330,8 +329,6 @@ function NoteEditor({ note, onSave, onDelete }) {
           </div>
         ))}
       </div>
-      {/* Floating Toolbar */}
-      <FloatingToolbar onAction={handleToolbarAction} />
       {/* Fixed Footer */}
       <div className="shrink-0 border-t border-[var(--border)] bg-[var(--bg-secondary)]">
         <div className="flex items-center justify-between p-2 px-4 text-xs text-[var(--text-secondary)]">
