@@ -8,7 +8,8 @@ function formatDate(dateString) {
     ' ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
-function NotesSidebar({ notes, selectedId, onSelect, onAdd, isMobileOpen, onMobileClose }) {
+function NotesSidebar({ notes, selectedId, onSelect, onAdd, isMobileOpen, onMobileClose, searchQuery, setSearchQuery }) {
+  const [searchQueryLocal, setSearchQueryLocal] = useState('');
 
   const handleSelect = (id) => {
     onSelect(id);
@@ -23,6 +24,18 @@ function NotesSidebar({ notes, selectedId, onSelect, onAdd, isMobileOpen, onMobi
       onMobileClose();
     }
   };
+
+  // Filter notes based on search query
+  const filteredNotes = notes.filter(note => {
+    if (!searchQueryLocal && !searchQuery) return true;
+    const query = (searchQueryLocal || searchQuery).toLowerCase();
+    return (
+      (note.title && note.title.toLowerCase().includes(query)) ||
+      (note.blocks && note.blocks.some(block => 
+        block.type === 'text' && block.text.toLowerCase().includes(query)
+      ))
+    );
+  });
 
   return (
     <>
@@ -53,42 +66,83 @@ function NotesSidebar({ notes, selectedId, onSelect, onAdd, isMobileOpen, onMobi
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
         </div>
-      <button
-        className="w-full p-4 text-left border-b border-[var(--border)] hover:bg-[var(--hover)] hover:rounded-t-lg transition-colors flex items-center justify-between group font-mono tracking-tight text-base rounded-t-lg"
-        onClick={handleAddInternal}
-        title="Add a new note"
-      >
-        <span className="font-semibold text-lg text-[var(--text-primary)] font-mono tracking-tight">New Note</span>
-        <span className="w-7 h-7 flex items-center justify-center text-[var(--accent)] bg-[var(--bg-tertiary)] rounded transition-colors">
-          ＋
-        </span>
-      </button>
-      <ul className="flex-1 overflow-x-auto sm:overflow-y-auto divide-y divide-[var(--border)] bg-[var(--bg-tertiary)] rounded-b-none sm:rounded-b-lg font-mono whitespace-nowrap sm:whitespace-normal">
-        {notes.length === 0 && (
-          <li className="px-4 py-3 text-xs text-[var(--text-muted)] italic font-mono">Add new note to begin</li>
-        )}
-        {notes.map(note => (
-          <li
-            key={note.id}
-            className={`cursor-pointer transition-colors duration-150 ${ 
-              note.id === selectedId 
-                ? 'bg-[var(--selected)] border-l-4 border-[var(--accent)]' 
-                : 'hover:bg-[var(--hover)]'
-            }`}
-            onClick={() => handleSelect(note.id)}
-          >
-            <div className="px-4 py-3">
-              <h3 className="font-semibold text-[var(--text-primary)] truncate font-mono">
-                {note.title || 'Untitled Note'}
-              </h3>
-              <p className="text-xs text-[var(--text-secondary)] font-mono">
-                {formatDate(note.updated || note.created)}
-              </p>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </aside>
+        
+        {/* Mobile search bar */}
+        <div className="sm:hidden p-4">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search notes..."
+              className="w-full pl-8 pr-8 py-2 bg-[var(--bg-tertiary)] text-[var(--text-primary)] rounded border border-[var(--border)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+              value={searchQueryLocal}
+              onChange={(e) => setSearchQueryLocal(e.target.value)}
+            />
+            <svg className="w-4 h-4 absolute left-2 top-3 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            {searchQueryLocal && (
+              <button
+                className="absolute right-2 top-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                onClick={() => setSearchQueryLocal('')}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+        
+        <button
+          className="w-full p-4 text-left border-b border-[var(--border)] hover:bg-[var(--hover)] hover:rounded-t-lg transition-colors flex items-center justify-between group font-mono tracking-tight text-base rounded-t-lg"
+          onClick={handleAddInternal}
+          title="Add a new note"
+        >
+          <span className="font-semibold text-lg text-[var(--text-primary)] font-mono tracking-tight">New Note</span>
+          <span className="w-7 h-7 flex items-center justify-center text-[var(--accent)] bg-[var(--bg-tertiary)] rounded transition-colors">
+            ＋
+          </span>
+        </button>
+        <ul className="flex-1 overflow-x-auto sm:overflow-y-auto divide-y divide-[var(--border)] bg-[var(--bg-tertiary)] rounded-b-none sm:rounded-b-lg font-mono whitespace-nowrap sm:whitespace-normal">
+          {filteredNotes.length === 0 && (
+            <li className="px-4 py-3 text-xs text-[var(--text-muted)] italic font-mono">
+              Add new note to begin
+            </li>
+          )}
+          {filteredNotes.map(note => {
+            // Highlight matches in title
+            let titleDisplay = note.title || 'Untitled Note';
+            const query = (searchQueryLocal || searchQuery || '').toLowerCase();
+            
+            if (query) {
+              const regex = new RegExp(`(${query})`, 'gi');
+              titleDisplay = titleDisplay.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-600">$1</mark>');
+            }
+            
+            return (
+              <li
+                key={note.id}
+                className={`cursor-pointer transition-colors duration-150 ${ 
+                  note.id === selectedId 
+                    ? 'bg-[var(--selected)] border-l-4 border-[var(--accent)]' 
+                    : 'hover:bg-[var(--hover)]'
+                }`}
+                onClick={() => handleSelect(note.id)}
+              >
+                <div className="px-4 py-3">
+                  <h3 
+                    className="font-semibold text-[var(--text-primary)] truncate font-mono" 
+                    dangerouslySetInnerHTML={{ __html: titleDisplay }}
+                  />
+                  <p className="text-xs text-[var(--text-secondary)] font-mono">
+                    {formatDate(note.updated || note.created)}
+                  </p>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </aside>
     </>
   );
 }
@@ -115,7 +169,6 @@ function AddBlockTextarea({ value, setValue, onAdd, placeholder, textareaRef, te
     />
   );
 }
-
 
 const defaultBlocks = [
   { type: 'text', text: '' } // New notes start with a single, empty text block
@@ -344,9 +397,7 @@ function NoteEditor({ note, onSave, onDelete }) {
             className="p-1 rounded hover:bg-[var(--bg-tertiary)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             title="Delete note"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
           </button>
         </div>
       </div>
@@ -354,10 +405,9 @@ function NoteEditor({ note, onSave, onDelete }) {
   );
 }
 
-const NotesApp = forwardRef(({ isMobileSidebarOpen, setIsMobileSidebarOpen }, ref) => {
+const NotesApp = forwardRef(({ isMobileSidebarOpen, setIsMobileSidebarOpen, searchQuery, setSearchQuery }, ref) => {
   const { notes, loading, addOrUpdateNote, removeNote } = useNotes();
   const [selectedId, setSelectedId] = React.useState(null);
-  // const [isMobileSidebarOpen, setIsMobileSidebarOpen] = React.useState(false); // State lifted to App
   const [pendingNewId, setPendingNewId] = React.useState(null);
 
   // Sort notes newest to oldest (with seconds precision)
@@ -426,6 +476,8 @@ const NotesApp = forwardRef(({ isMobileSidebarOpen, setIsMobileSidebarOpen }, re
         onAdd={handleAdd}
         isMobileOpen={isMobileSidebarOpen}
         onMobileClose={() => setIsMobileSidebarOpen(false)}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
       />
       <main className={`
         note-editor-container flex-1 relative flex flex-col 
@@ -443,12 +495,19 @@ const NotesApp = forwardRef(({ isMobileSidebarOpen, setIsMobileSidebarOpen }, re
 });
 
 function App() {
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = React.useState(false);
-  const [theme, setTheme] = React.useState(() => {
-    return localStorage.getItem('theme') || 'pastel';
-  });
-  const notesAppRef = React.useRef(null);
-  const importInputRef = React.useRef(null);
+  const [theme, setTheme] = useState('pastel');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const notesAppRef = useRef(null);
+  
+  // New state for search query
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const cycleTheme = () => {
+    const themes = ['pastel', 'light', 'dark'];
+    const currentIndex = themes.indexOf(theme);
+    const nextIndex = (currentIndex + 1) % themes.length;
+    setTheme(themes[nextIndex]);
+  };
 
   React.useEffect(() => {
     // Remove all theme classes first
@@ -458,73 +517,67 @@ function App() {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
-  // Cycle through themes: pastel -> light -> dark -> pastel
-  const cycleTheme = () => {
-    setTheme((prev) => {
-      if (prev === 'pastel') return 'light';
-      if (prev === 'light') return 'dark';
-      return 'pastel';
-    });
-  };
-
-  // Icon for current theme
-  const themeIcon =
-    theme === 'pastel' ? (
-      // Palette icon
-      <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3C7 3 3 7 3 12c0 3.866 3.134 7 7 7h1a3 3 0 003-3v-1a1 1 0 011-1h1a3 3 0 003-3c0-5-4-9-9-9z" /><circle cx="8.5" cy="10.5" r="1.5" fill="#a084e8" /><circle cx="15.5" cy="10.5" r="1.5" fill="#c3b6f7" /><circle cx="12" cy="15" r="1.5" fill="#b5a8c9" /></svg>
-    ) : theme === 'light' ? (
-      // Sun icon
-      <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="5" fill="#FFD600" /><path stroke="#FFD600" strokeWidth="2" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M17.66 17.66l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M17.66 6.34l1.42-1.42" /></svg>
-    ) : (
-      // Moon icon
-      <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke="#c3b6f7" strokeWidth="2" d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" /></svg>
-    );
-
   return (
     <NotesProvider>
-      <div className="min-h-screen flex flex-col">
-        <header className="app-header flex items-center justify-between p-4 border-b bg-[var(--bg-primary)] border-[var(--border)] backdrop-blur-md sticky top-0 z-20 font-mono">
-          <h1 className="app-logo font-mono font-bold text-2xl tracking-tight text-[var(--text-primary)]">&lt;taskmark&gt;</h1>
-          <div className="flex items-center gap-2">
-            {/* Export Notes Icon */}
-            <ExportImportButtons notesAppRef={notesAppRef} />
-            {/* Theme Switcher Icon */}
-            <button
-              onClick={cycleTheme}
-              className="p-2 ml-2 rounded text-[var(--text-primary)] hover:bg-[var(--hover)]"
-              aria-label="Switch theme"
-              title={
-                theme === 'pastel' ? 'Pastel Mode' : theme === 'light' ? 'Light Mode' : 'Dark Mode'
-              }
-            >
-              {themeIcon}
-            </button>
-            <div className="sm:hidden flex items-center">
-              <button
-                onClick={() => {
-                  if (notesAppRef.current && notesAppRef.current.triggerAddNote) {
-                    notesAppRef.current.triggerAddNote();
-                  }
-                  setIsMobileSidebarOpen(false); // Close sidebar after triggering add note
-                }}
-                className="p-2 rounded text-[var(--text-primary)] hover:bg-[var(--hover)]"
-                aria-label="Add new note"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-              </button>
-              <button
-                onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-                className="p-2 ml-1 rounded text-[var(--text-primary)] hover:bg-[var(--hover)]"
-                aria-label="Toggle sidebar"
-                aria-expanded={isMobileSidebarOpen}
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-              </button>
+      <div className={`min-h-screen flex flex-col ${theme}-theme`}>
+        <header className="bg-[var(--bg-secondary)] border-b border-[var(--border)] p-2 flex justify-between items-center">
+          <div className="flex items-center">
+            <h1 className="text-lg font-bold text-[var(--text-primary)] ml-2 font-mono">&lt;taskmark&gt;</h1>
+          </div>
+          
+          {/* Search bar in header */}
+          <div className="flex-1 max-w-md mx-4 hidden sm:block">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search notes..."
+                className="w-full pl-8 pr-8 py-2 bg-[var(--bg-tertiary)] text-[var(--text-primary)] rounded border border-[var(--border)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <svg className="w-4 h-4 absolute left-2 top-3 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+              {searchQuery && (
+                <button
+                  className="absolute right-2 top-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                  onClick={() => setSearchQuery('')}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              )}
             </div>
+          </div>
+          
+          <div className="flex items-center">
+            <ExportImportButtons notesAppRef={notesAppRef} />
+            <button
+              onClick={() => notesAppRef.current?.triggerAddNote()}
+              className="p-2 rounded text-[var(--text-primary)] hover:bg-[var(--hover)]"
+              aria-label="Add new note"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            </button>
+            <button
+              onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+              className="p-2 ml-1 rounded text-[var(--text-primary)] hover:bg-[var(--hover)]"
+              aria-label="Toggle sidebar"
+              aria-expanded={isMobileSidebarOpen}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
           </div>
         </header>
         <main className="flex-1 bg-[var(--bg-primary)]">
-          <NotesApp ref={notesAppRef} isMobileSidebarOpen={isMobileSidebarOpen} setIsMobileSidebarOpen={setIsMobileSidebarOpen} />
+          <NotesApp 
+            ref={notesAppRef} 
+            isMobileSidebarOpen={isMobileSidebarOpen} 
+            setIsMobileSidebarOpen={setIsMobileSidebarOpen}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+          />
         </main>
       </div>
     </NotesProvider>
@@ -607,4 +660,3 @@ function ExportImportButtons({ notesAppRef }) {
 }
 
 export default App;
-
