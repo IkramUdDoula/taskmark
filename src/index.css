@@ -95,6 +95,40 @@ body {
   font-family: 'Fira Code', 'Fira Mono', 'JetBrains Mono', 'Menlo', 'Consolas', monospace !important;
 }
 
+/* Tooltip Styles */
+[data-tooltip] {
+  position: relative;
+  cursor: pointer;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: auto;
+  transform: none;
+  min-width: 120px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  padding: 0.5em 1em;
+  border-radius: 0.5em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  font-size: 0.7em;
+  white-space: pre-line;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+  z-index: 50;
+  margin-top: 0.5rem;
+}
+
+[data-tooltip]:hover::after {
+  opacity: 1;
+  visibility: visible;
+}
+
 body {
   min-height: 100vh;
   background: var(--bg-primary);
