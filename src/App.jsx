@@ -533,8 +533,8 @@ function App() {
 
   return (
     <NotesProvider>
-      <div className={`min-h-screen flex flex-col ${theme}-theme`}>
-        <header className="bg-[var(--bg-secondary)] border-b border-[var(--border)] p-2 flex items-center">
+      <div className={`min-h-screen flex flex-col ${theme}-theme bg-[var(--bg-primary)]`}>
+        <header className="bg-[var(--bg-secondary)] border-b border-[var(--border)] p-[14px] mx-4 mt-4 flex items-center rounded-lg">
           <div className="flex items-center">
             <h1 className="text-lg font-bold text-[var(--text-primary)] ml-2 font-mono">&lt;taskmark&gt;</h1>
           </div>
