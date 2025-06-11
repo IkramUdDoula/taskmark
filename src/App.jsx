@@ -29,11 +29,18 @@ function NotesSidebar({ notes, selectedId, onSelect, onAdd, isMobileOpen, onMobi
   const filteredNotes = notes.filter(note => {
     if (!searchQueryLocal && !searchQuery) return true;
     const query = (searchQueryLocal || searchQuery).toLowerCase();
+    
+    // Format dates for searching
+    const createdDate = formatDate(note.created || '').toLowerCase();
+    const updatedDate = formatDate(note.updated || note.created || '').toLowerCase();
+    
     return (
       (note.title && note.title.toLowerCase().includes(query)) ||
       (note.blocks && note.blocks.some(block => 
         block.type === 'text' && block.text.toLowerCase().includes(query)
-      ))
+      )) ||
+      createdDate.includes(query) ||
+      updatedDate.includes(query)
     );
   });
 
@@ -497,10 +504,17 @@ const NotesApp = forwardRef(({ isMobileSidebarOpen, setIsMobileSidebarOpen, sear
 function App() {
   const [theme, setTheme] = useState('pastel');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const notesAppRef = useRef(null);
-  
-  // New state for search query
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchInputRef = useRef(null);
+  const notesAppRef = useRef(null);
+
+  // Focus search input when search is opened
+  useEffect(() => {
+    if (isSearchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isSearchOpen]);
 
   const cycleTheme = () => {
     const themes = ['pastel', 'light', 'dark'];
@@ -520,53 +534,104 @@ function App() {
   return (
     <NotesProvider>
       <div className={`min-h-screen flex flex-col ${theme}-theme`}>
-        <header className="bg-[var(--bg-secondary)] border-b border-[var(--border)] p-2 flex justify-between items-center">
+        <header className="bg-[var(--bg-secondary)] border-b border-[var(--border)] p-2 flex items-center">
           <div className="flex items-center">
             <h1 className="text-lg font-bold text-[var(--text-primary)] ml-2 font-mono">&lt;taskmark&gt;</h1>
           </div>
           
-          {/* Search bar in header */}
-          <div className="flex-1 max-w-md mx-4 hidden sm:block">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search notes..."
-                className="w-full pl-8 pr-8 py-2 bg-[var(--bg-tertiary)] text-[var(--text-primary)] rounded border border-[var(--border)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <svg className="w-4 h-4 absolute left-2 top-3 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-              </svg>
-              {searchQuery && (
-                <button
-                  className="absolute right-2 top-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                  onClick={() => setSearchQuery('')}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                </button>
-              )}
-            </div>
-          </div>
+          <div className="flex-1"></div>
           
-          <div className="flex items-center">
-            <ExportImportButtons notesAppRef={notesAppRef} />
+          {/* All header icons container */}
+          <div className="flex items-center space-x-2">
+            {/* Search */}
+            <div className="hidden sm:block">
+              <div className="relative">
+                {isSearchOpen ? (
+                  <div className="relative w-64">
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      placeholder="Search notes..."
+                      className="w-full pl-8 pr-8 py-2 bg-[var(--bg-tertiary)] text-[var(--text-primary)] rounded-lg border border-[var(--border)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)] transition-all duration-200"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onBlur={() => !searchQuery && setIsSearchOpen(false)}
+                    />
+                    <svg className="w-4 h-4 absolute left-2 top-3 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    {searchQuery && (
+                      <button
+                        className="absolute right-2 top-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setSearchQuery('');
+                        }}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setIsSearchOpen(true);
+                    }}
+                    className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
+                    aria-label="Search notes"
+                    data-tooltip="Search notes"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Export/Import Buttons */}
+            <div className="flex items-center space-x-2">
+              <ExportImportButtons notesAppRef={notesAppRef} />
+            </div>
+            
+            {/* Theme Toggle */}
+            <button
+              onClick={cycleTheme}
+              className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
+              aria-label="Toggle theme"
+              data-tooltip="Toggle theme"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+              </svg>
+            </button>
+            
+            {/* Add Note */}
             <button
               onClick={() => notesAppRef.current?.triggerAddNote()}
-              className="p-2 rounded text-[var(--text-primary)] hover:bg-[var(--hover)]"
+              className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
               aria-label="Add new note"
+              data-tooltip="Add new note"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
             </button>
+            
+            {/* Mobile Menu Toggle */}
             <button
               onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-              className="p-2 ml-1 rounded text-[var(--text-primary)] hover:bg-[var(--hover)]"
+              className="sm:hidden p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
               aria-label="Toggle sidebar"
               aria-expanded={isMobileSidebarOpen}
+              data-tooltip="Toggle sidebar"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
+              </svg>
             </button>
           </div>
         </header>
@@ -631,22 +696,24 @@ function ExportImportButtons({ notesAppRef }) {
     <>
       <button
         onClick={handleExport}
-        className="p-2 rounded text-[var(--text-primary)] hover:bg-[var(--hover)]"
-        title="Export notes as JSON"
+        className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
         aria-label="Export notes"
+        data-tooltip="Export notes"
       >
-        {/* Download/Export icon */}
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" /></svg>
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+        </svg>
       </button>
       <button
         onClick={handleImportClick}
-        className="p-2 rounded text-[var(--text-primary)] hover:bg-[var(--hover)]"
-        title="Import notes from JSON"
+        className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
         aria-label="Import notes"
         type="button"
+        data-tooltip="Import notes"
       >
-        {/* Upload/Import icon */}
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 20V8m0 0l-4 4m4-4l4 4M4 4h16" /></svg>
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+        </svg>
       </button>
       <input
         id="import-notes-input"
