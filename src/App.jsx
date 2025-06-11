@@ -490,11 +490,10 @@ const NotesApp = forwardRef(({ isMobileSidebarOpen, setIsMobileSidebarOpen, sear
         note-editor-container flex-1 relative flex flex-col 
         bg-[var(--bg-secondary)] shadow-none 
         m-4 p-4
-        border border-[var(--border)] 
-        rounded-lg
-        font-mono
+        border border-[var(--border)] rounded-lg font-mono
         transition-opacity duration-300 ease-in-out 
         ${isMobileSidebarOpen ? 'opacity-50 pointer-events-none sm:opacity-100 sm:pointer-events-auto' : 'opacity-100 pointer-events-auto'}
+        sm:ml-0
       `}>
         <NoteEditor note={selectedNote} onSave={handleSave} onDelete={handleDelete} />
       </main>
