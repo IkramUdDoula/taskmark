@@ -62,7 +62,7 @@ function NotesSidebar({ notes, selectedId, onSelect, onAdd, isMobileOpen, onMobi
           ${isMobileOpen ? 'translate-x-0' : 'translate-x-full'}
           border-l 
           sm:relative sm:left-auto sm:right-auto sm:translate-x-0 sm:w-60 sm:max-w-none
-          sm:m-4 sm:mb-4 sm:rounded-lg 
+          sm:ml-4 sm:mt-4 sm:mr-2 sm:mb-4 sm:rounded-lg 
           sm:border-l-0 sm:border-b-0 sm:border-r 
           ${isMobileOpen ? 'flex' : 'hidden'} sm:flex
         `}
@@ -635,7 +635,7 @@ function App() {
             </button>
           </div>
         </header>
-        <main className="flex-1 bg-[var(--bg-primary)]">
+        <main className="flex-1 w-full h-full bg-[var(--bg-primary)] mt-0 ml-0 mr-4 mb-0">
           <NotesApp 
             ref={notesAppRef} 
             isMobileSidebarOpen={isMobileSidebarOpen} 
