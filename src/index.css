@@ -104,21 +104,24 @@ body {
 [data-tooltip]::after {
   content: attr(data-tooltip);
   position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 0.25rem 0.5rem;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  white-space: nowrap;
-  pointer-events: none;
+  top: 100%;
+  right: 0;
+  left: auto;
+  transform: none;
+  min-width: 120px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  padding: 0.5em 1em;
+  border-radius: 0.5em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  font-size: 0.7em;
+  white-space: pre-line;
   opacity: 0;
+  pointer-events: none;
   visibility: hidden;
   transition: opacity 0.2s, visibility 0.2s;
   z-index: 50;
-  margin-bottom: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 [data-tooltip]:hover::after {
