@@ -126,7 +126,12 @@ function NoteEditor({ note, onSave, onDelete }) {
   const [blocks, setBlocks] = useState(note?.blocks && note.blocks.length > 0 ? note.blocks : defaultBlocks);
   const [stats, setStats] = useState({ words: 0, lines: 0 });
   const [focusedBlockIdx, setFocusedBlockIdx] = useState(null);
+  const [activeTool, setActiveTool] = useState(null);
   const textareaRefs = useRef([]);
+  
+  const handleToolClick = (tool) => {
+    setActiveTool(activeTool === tool ? null : tool);
+  };
 
   // Helper: Apply formatting to text
   const applyFormatting = (text, action) => {
@@ -312,9 +317,102 @@ function NoteEditor({ note, onSave, onDelete }) {
       </div>
       
       {/* Scrollable Textarea Section */}
-      <div className="flex-1 min-h-0 p-2 sm:p-4"> {/* Outer container defines space and padding for the content area */}
+      <div className="flex-1 min-h-0 p-2 sm:p-4 relative"> {/* Added relative for absolute positioning context */}
+        {/* Floating Toolbar */}
+        <div className="absolute bottom-4 right-4 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg p-2 flex items-center gap-3 shadow-lg z-10">
+          {/* Heading (H) */}
+          <button
+            type="button"
+            onClick={() => handleToolClick('heading')}
+            className={`w-8 h-8 flex items-center justify-center rounded font-bold text-base transition-colors ${
+              activeTool === 'heading' 
+                ? 'bg-[var(--accent)] text-white' 
+                : 'text-[var(--text-secondary)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)]'
+            }`}
+            title="Heading"
+            aria-label="Heading button"
+            aria-pressed={activeTool === 'heading'}
+          >
+            H
+          </button>
+
+          {/* Bold (B) */}
+          <button
+            type="button"
+            onClick={() => handleToolClick('bold')}
+            className={`w-8 h-8 flex items-center justify-center rounded font-bold text-xl transition-colors ${
+              activeTool === 'bold' 
+                ? 'bg-[var(--accent)] text-white' 
+                : 'text-[var(--text-secondary)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)]'
+            }`}
+            title="Bold"
+            aria-label="Bold button"
+            aria-pressed={activeTool === 'bold'}
+          >
+            B
+          </button>
+
+          {/* Italic (I) */}
+          <button
+            type="button"
+            onClick={() => handleToolClick('italic')}
+            className={`w-8 h-8 flex items-center justify-center rounded italic text-xl transition-colors ${
+              activeTool === 'italic' 
+                ? 'bg-[var(--accent)] text-white' 
+                : 'text-[var(--text-secondary)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)]'
+            }`}
+            title="Italic"
+            aria-label="Italic button"
+            aria-pressed={activeTool === 'italic'}
+          >
+            I
+          </button>
+
+          {/* Divider */}
+          <div className="w-px h-6 bg-[var(--border)] mx-1"></div>
+
+          {/* Checklist */}
+          <button
+            type="button"
+            onClick={() => handleToolClick('checklist')}
+            className={`w-8 h-8 flex items-center justify-center rounded transition-colors ${
+              activeTool === 'checklist' 
+                ? 'bg-[var(--accent)] text-white' 
+                : 'text-[var(--text-secondary)] hover:bg-[var(--hover)] hover:text-[var(--text-primary)]'
+            }`}
+            title="Checklist"
+            aria-label="Checklist button"
+            aria-pressed={activeTool === 'checklist'}
+          >
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              className="w-5 h-5" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <rect 
+                x="3" y="3" 
+                width="18" height="18" 
+                rx="2" ry="2" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                fill="none"
+              />
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth="2" 
+                d="M9 12l2 2 4-4" 
+                className={activeTool === 'checklist' ? 'opacity-100' : 'opacity-0'}
+              />
+            </svg>
+          </button>
+        </div>
+        
+        {/* Textarea Content */}
         {blocks.map((block, index) => (
-          <div key={block.id} className="h-full"> {/* Wrapper for textarea, takes full height of parent */}
+          <div key={block.id} className="h-full">
             <textarea
               className="w-full h-full p-2 bg-transparent text-[var(--text-primary)] resize-none focus:outline-none font-mono text-base leading-relaxed"
               value={block.text}
@@ -344,9 +442,7 @@ function NoteEditor({ note, onSave, onDelete }) {
             className="p-1 rounded hover:bg-[var(--bg-tertiary)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             title="Delete note"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
           </button>
         </div>
       </div>
@@ -583,7 +679,7 @@ function ExportImportButtons({ notesAppRef }) {
         aria-label="Export notes"
       >
         {/* Download/Export icon */}
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" /></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m0 0l-4-4m4 4l4-4M4 20h16" /></svg>
       </button>
       <button
         onClick={handleImportClick}
@@ -607,4 +703,3 @@ function ExportImportButtons({ notesAppRef }) {
 }
 
 export default App;
-
