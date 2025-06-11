@@ -2,23 +2,6 @@
 
 TaskMark is a productivity web application designed to help users record, organize, and manage meeting notes and checklists efficiently. Built with React and styled using Tailwind CSS, TaskMark offers an intuitive interface and smart features to streamline your workflow.
 
-## Features <Current and Upcoming>
-
-### 1. Meeting Notes Recorder
-- **Create, edit, and delete meeting notes**: Quickly jot down important points from your meetings.
-- **Organize notes**: Keep your notes structured and accessible for future reference.
-
-### 2. AI-Powered Checklist
-- **Smart checklist suggestions**: Get AI-generated checklist items based on your meeting notes to ensure you never miss an action item.
-- **Interactive tasks**: Mark tasks as complete or remove them as needed.
-
-### 3. Context Management
-- **Notes context**: Uses React Context API to manage notes and checklist data seamlessly across components.
-
-### 4. Modern UI
-- **Responsive design**: Looks great on both desktop and mobile devices.
-- **Tailwind CSS**: Clean, modern, and customizable styling.
-
 ## Getting Started
 
 ### Prerequisites
