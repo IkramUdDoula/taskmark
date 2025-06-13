@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { NotesProvider, useNotes } from './NotesContext';
+import { getVersionInfo } from './utils/version';
 import './index.css';
 
 function formatDate(dateString) {
@@ -142,7 +143,7 @@ function NotesSidebar({ notes, selectedId, onSelect, onAdd, isMobileOpen, onMobi
                     dangerouslySetInnerHTML={{ __html: titleDisplay }}
                   />
                   <p className="text-xs text-[var(--text-secondary)] font-mono">
-                    {formatDate(note.updated || note.created)}
+                    {formatDate(note.created)}
                   </p>
                 </div>
               </li>
@@ -393,11 +394,14 @@ function NoteEditor({ note, onSave, onDelete }) {
       <div className="shrink-0 border-t border-[var(--border)] bg-[var(--bg-secondary)]">
         <div className="flex items-center justify-between p-2 px-4 text-xs text-[var(--text-secondary)]">
           <div className="flex items-center space-x-4">
-            <span>Last updated: {formatDate(note.updated || note.created)}</span>
+            <div className="flex items-center gap-1" title={`Last updated: ${formatDate(note.updated || note.created)}`}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span>{formatDate(note.updated || note.created)}</span>
+            </div>
             <span className="text-[var(--text-muted)]">•</span>
             <span>{stats.words} words</span>
-            <span className="text-[var(--text-muted)]">•</span>
-            <span>{stats.lines} lines</span>
           </div>
           <button
             onClick={() => onDelete(note.id)}
@@ -510,8 +514,14 @@ function App() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [versionInfo, setVersionInfo] = useState({ hash: null, message: null, version: '0.0.0' });
   const searchInputRef = useRef(null);
   const notesAppRef = useRef(null);
+
+  // Fetch version info on mount
+  useEffect(() => {
+    getVersionInfo().then(setVersionInfo);
+  }, []);
 
   // Focus search input when search is opened
   useEffect(() => {
@@ -551,6 +561,14 @@ function App() {
         <header className="bg-[var(--bg-secondary)] border-b border-[var(--border)] p-[14px] mx-4 mt-4 flex items-center rounded-lg">
           <div className="flex items-center">
             <h1 className="text-lg font-bold text-[var(--text-primary)] ml-2 font-mono">&lt;taskmark&gt;</h1>
+            {versionInfo.hash && (
+              <span 
+                className="text-xs text-[var(--text-muted)] ml-2 font-mono" 
+                title={`${versionInfo.message}\n\nVersion ${versionInfo.version}`}
+              >
+                v{versionInfo.version}-{versionInfo.hash}
+              </span>
+            )}
           </div>
           
           <div className="flex-1"></div>
