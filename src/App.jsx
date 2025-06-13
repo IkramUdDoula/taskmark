@@ -471,7 +471,11 @@ const NotesApp = forwardRef(({ isMobileSidebarOpen, setIsMobileSidebarOpen, sear
   useImperativeHandle(ref, () => ({
     triggerAddNote: () => {
       handleAdd();
-    }
+    },
+    getSelectedNote: () => {
+      return selectedNote;
+    },
+    handleDelete: handleDelete
   }));
 
   if (loading) {
@@ -523,6 +527,37 @@ function App() {
       searchInputRef.current.focus();
     }
   }, [isSearchOpen]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Alt + N: New Note
+      if (e.altKey && e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        notesAppRef.current?.triggerAddNote();
+      }
+      
+      // Alt + Delete: Delete Note
+      if (e.altKey && e.key.toLowerCase() === 'delete') {
+        e.preventDefault();
+        const selectedNote = notesAppRef.current?.getSelectedNote();
+        if (selectedNote) {
+          notesAppRef.current?.handleDelete(selectedNote.id);
+        }
+      }
+      
+      // Alt + S: Search
+      if (e.altKey && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   const cycleTheme = () => {
     const themes = ['pastel', 'light', 'dark'];
