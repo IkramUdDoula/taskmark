@@ -502,7 +502,11 @@ const NotesApp = forwardRef(({ isMobileSidebarOpen, setIsMobileSidebarOpen, sear
 });
 
 function App() {
-  const [theme, setTheme] = useState('pastel');
+  const [theme, setTheme] = useState(() => {
+    // Load theme from localStorage on initial render
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme || 'pastel'; // Default to pastel if no theme is saved
+  });
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -523,11 +527,13 @@ function App() {
     setTheme(themes[nextIndex]);
   };
 
-  React.useEffect(() => {
+  // Apply theme class and save to localStorage
+  useEffect(() => {
     // Remove all theme classes first
     document.documentElement.classList.remove('theme-pastel', 'theme-light', 'theme-dark');
     // Add the current theme class
     document.documentElement.classList.add(`theme-${theme}`);
+    // Save theme to localStorage
     localStorage.setItem('theme', theme);
   }, [theme]);
 

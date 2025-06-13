@@ -6,17 +6,17 @@
 
 /* Theme Palettes */
 :root.theme-pastel {
-  --bg-primary: #f8fafc;
-  --bg-secondary: #f3f1fc;
-  --bg-tertiary: #f9f7ff;
-  --text-primary: #2d2d2d;
-  --text-secondary: #7e6b8f;
-  --text-muted: #b5a8c9;
-  --accent: #a084e8;
-  --accent-light: #c3b6f7;
-  --selected: #e4e2f9;
-  --border: #e5e7eb;
-  --hover: #ede9fe;
+  --bg-primary: #1A3636;
+  --bg-secondary: #40534C;
+  --bg-tertiary: #2E4B4B;
+  --text-primary: #D6BD98;
+  --text-secondary: #a9997c;
+  --text-muted: #677D6A;
+  --accent: #D6BD98;
+  --accent-light: #EFE1C3;
+  --selected: #52685E;
+  --border: #677D6A;
+  --hover: #52685E;
   --button-delete-bg: rgba(251, 245, 233, 0.8);
   --button-delete-bg-hover: rgba(239, 225, 195, 0.9);
   --button-delete-icon: #C62828;
@@ -59,25 +59,23 @@
   --button-delete-icon-hover: #ef4444;
 }
 
-/* Pastel is the default for now, so also set as fallback */
-:root, :root.theme-pastel {
+/* Pastel is the default theme */
+:root {
   --bg-primary: #1A3636;
   --bg-secondary: #40534C;
-  --bg-tertiary: #2E4B4B; /* Derived for distinct surfaces */
+  --bg-tertiary: #2E4B4B;
   --text-primary: #D6BD98;
-  --text-secondary: #a9997c; /* Derived for less prominent text */
+  --text-secondary: #a9997c;
   --text-muted: #677D6A;
   --accent: #D6BD98;
-  --accent-light: #EFE1C3; /* Derived for hover on accents */
+  --accent-light: #EFE1C3;
   --border: #677D6A;
-  --hover: #52685E; /* Derived for list item hover */
-  --selected: #52685E; /* Can be same as hover or slightly more prominent */
-
-  /* Delete Button Specific Styles */
-  --button-delete-bg: rgba(251, 245, 233, 0.8); /* Lighter than logo for background with transparency */
-  --button-delete-bg-hover: rgba(239, 225, 195, 0.9); /* Slightly darker for hover, less transparent */
-  --button-delete-icon: #C62828; /* Dark red for icon */
-  --button-delete-icon-hover: #B71C1C; /* Slightly darker icon for hover */
+  --hover: #52685E;
+  --selected: #52685E;
+  --button-delete-bg: rgba(251, 245, 233, 0.8);
+  --button-delete-bg-hover: rgba(239, 225, 195, 0.9);
+  --button-delete-icon: #C62828;
+  --button-delete-icon-hover: #B71C1C;
 }
 
 html {
