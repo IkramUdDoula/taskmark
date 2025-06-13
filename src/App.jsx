@@ -551,13 +551,20 @@ function App() {
         e.preventDefault();
         setIsSearchOpen(true);
       }
+
+      // Escape: Close search
+      if (e.key === 'Escape' && isSearchOpen) {
+        e.preventDefault();
+        setIsSearchOpen(false);
+        setSearchQuery('');
+      }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [isSearchOpen]); // Added isSearchOpen to dependencies
 
   const cycleTheme = () => {
     const themes = ['pastel', 'light', 'dark'];
