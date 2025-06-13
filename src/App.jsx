@@ -406,7 +406,9 @@ function NoteEditor({ note, onSave, onDelete }) {
           <button
             onClick={() => onDelete(note.id)}
             className="p-1 rounded hover:bg-[var(--bg-tertiary)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-            title="Delete note"
+            title=""
+            data-tooltip="Delete note (Alt + Del)"
+            data-tooltip-top="true"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
           </button>
@@ -471,7 +473,9 @@ const NotesApp = forwardRef(({ isMobileSidebarOpen, setIsMobileSidebarOpen, sear
   useImperativeHandle(ref, () => ({
     triggerAddNote: () => {
       handleAdd();
-    }
+    },
+    getSelectedNote: () => selectedNote,
+    handleDelete: handleDelete
   }));
 
   if (loading) {
@@ -514,8 +518,44 @@ function App() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [notification, setNotification] = useState(null);
   const searchInputRef = useRef(null);
   const notesAppRef = useRef(null);
+
+  // Add keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.altKey) {
+        switch (e.key.toLowerCase()) {
+          case 'n':
+            e.preventDefault();
+            notesAppRef.current?.triggerAddNote();
+            break;
+          case 'delete':
+            e.preventDefault();
+            // Delete the currently selected note
+            const selectedNote = notesAppRef.current?.getSelectedNote();
+            if (selectedNote) {
+              notesAppRef.current?.handleDelete(selectedNote.id);
+            }
+            break;
+          case 's':
+            e.preventDefault();
+            setIsSearchOpen(true);
+            break;
+          case 't':
+            e.preventDefault();
+            cycleTheme();
+            break;
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [theme]);
 
   // Focus search input when search is opened
   useEffect(() => {
@@ -569,7 +609,7 @@ function App() {
                     <input
                       ref={searchInputRef}
                       type="text"
-                      placeholder="Search notes..."
+                      placeholder="Search notes... (Alt + S)"
                       className="w-full pl-8 pr-8 py-2 bg-[var(--bg-tertiary)] text-[var(--text-primary)] rounded-lg border border-[var(--border)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)] transition-all duration-200"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
@@ -600,7 +640,7 @@ function App() {
                     }}
                     className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
                     aria-label="Search notes"
-                    data-tooltip="Search notes"
+                    data-tooltip="Search notes (Alt + S)"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -620,7 +660,7 @@ function App() {
               onClick={cycleTheme}
               className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
               aria-label="Toggle theme"
-              data-tooltip="Toggle theme"
+              data-tooltip="Toggle theme (Alt + T)"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
@@ -632,7 +672,7 @@ function App() {
               onClick={() => notesAppRef.current?.triggerAddNote()}
               className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
               aria-label="Add new note"
-              data-tooltip="Add new note"
+              data-tooltip="Add new note (Alt + N)"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -662,6 +702,13 @@ function App() {
             setSearchQuery={setSearchQuery}
           />
         </main>
+        {notification && (
+          <Notification
+            message={notification.message}
+            type={notification.type}
+            onClose={() => setNotification(null)}
+          />
+        )}
       </div>
     </NotesProvider>
   );

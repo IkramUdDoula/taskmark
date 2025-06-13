@@ -96,33 +96,65 @@ body {
 /* Tooltip Styles */
 [data-tooltip] {
   position: relative;
-  cursor: pointer;
 }
 
-[data-tooltip]::after {
+/* Default tooltip (bottom) */
+[data-tooltip]:before {
   content: attr(data-tooltip);
   position: absolute;
   top: 100%;
   right: 0;
-  left: auto;
   transform: none;
-  min-width: 120px;
-  background: var(--bg-tertiary);
+  padding: 4px 8px;
+  background-color: var(--bg-tertiary);
   color: var(--text-primary);
-  padding: 0.5em 1em;
-  border-radius: 0.5em;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  font-size: 0.7em;
-  white-space: pre-line;
+  font-size: 12px;
+  border-radius: 4px;
+  white-space: nowrap;
   opacity: 0;
-  pointer-events: none;
   visibility: hidden;
   transition: opacity 0.2s, visibility 0.2s;
-  z-index: 50;
-  margin-top: 0.5rem;
+  z-index: 1000;
+  margin-top: 4px;
+  border: 1px solid var(--border);
 }
 
-[data-tooltip]:hover::after {
+/* Top tooltip for delete button */
+[data-tooltip-top="true"]:before {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 4px;
+}
+
+[data-tooltip]:hover:before {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Default arrow (bottom) */
+[data-tooltip]:after {
+  content: '';
+  position: absolute;
+  top: calc(100% - 4px);
+  right: 8px;
+  transform: none;
+  border-width: 4px;
+  border-style: solid;
+  border-color: transparent transparent var(--border) transparent;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+
+/* Top arrow for delete button */
+[data-tooltip-top="true"]:after {
+  top: auto;
+  bottom: calc(100% - 4px);
+  border-color: var(--border) transparent transparent transparent;
+}
+
+[data-tooltip]:hover:after {
   opacity: 1;
   visibility: visible;
 }
