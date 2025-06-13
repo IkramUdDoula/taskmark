@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { NotesProvider, useNotes } from './NotesContext';
 import { getVersionInfo } from './utils/version';
+import Notification from './Notification';
 import './index.css';
 
 function formatDate(dateString) {
