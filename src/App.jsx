@@ -695,7 +695,7 @@ function App() {
             </button>
           </div>
         </header>
-        <main className="flex-1 w-full h-full bg-[var(--bg-primary)] mt-0 ml-0 mr-4 mb-0">
+        <main className="flex-1 w-full overflow-hidden bg-[var(--bg-primary)] mt-0 ml-0 mr-4 mb-0">
           <NotesApp 
             ref={notesAppRef} 
             isMobileSidebarOpen={isMobileSidebarOpen} 
