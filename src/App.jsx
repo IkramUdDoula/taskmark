@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { NotesProvider, useNotes } from './NotesContext';
+import Notification from './Notification';
 import './index.css';
 
 function formatDate(dateString) {
@@ -547,7 +548,7 @@ function App() {
 
   return (
     <NotesProvider>
-      <div className={`min-h-screen flex flex-col ${theme}-theme bg-[var(--bg-primary)]`}>
+      <div className="flex flex-col h-screen">
         <header className="bg-[var(--bg-secondary)] border-b border-[var(--border)] p-[14px] mx-4 mt-4 flex items-center rounded-lg">
           <div className="flex items-center">
             <h1 className="text-lg font-bold text-[var(--text-primary)] ml-2 font-mono">&lt;taskmark&gt;</h1>
@@ -658,6 +659,7 @@ function App() {
             setSearchQuery={setSearchQuery}
           />
         </main>
+        <NotificationWrapper />
       </div>
     </NotesProvider>
   );
@@ -737,6 +739,28 @@ function ExportImportButtons({ notesAppRef }) {
         onChange={handleImport}
       />
     </>
+  );
+}
+
+function NotificationWrapper() {
+  const { lastDeletedNote, undoDelete } = useNotes();
+  const [key, setKey] = useState(Date.now());
+
+  useEffect(() => {
+    if (lastDeletedNote) {
+      setKey(Date.now());
+    }
+  }, [lastDeletedNote]);
+
+  if (!lastDeletedNote) return null;
+
+  return (
+    <Notification
+      key={key}
+      message="Note Deleted"
+      onUndo={undoDelete}
+      duration={5000}
+    />
   );
 }
 
