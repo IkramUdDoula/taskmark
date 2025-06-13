@@ -56,6 +56,7 @@ const NotesContext = createContext();
 export function NotesProvider({ children }) {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [lastDeletedNote, setLastDeletedNote] = useState(null);
 
   useEffect(() => {
     getAllNotes().then((n) => {
@@ -84,12 +85,30 @@ export function NotesProvider({ children }) {
   };
 
   const removeNote = async (id) => {
-    await deleteNote(id);
-    setNotes((prev) => prev.filter((n) => n.id !== id));
+    const noteToDelete = notes.find(n => n.id === id);
+    if (noteToDelete) {
+      setLastDeletedNote(noteToDelete);
+      await deleteNote(id);
+      setNotes((prev) => prev.filter((n) => n.id !== id));
+    }
+  };
+
+  const undoDelete = async () => {
+    if (lastDeletedNote) {
+      await addOrUpdateNote(lastDeletedNote);
+      setLastDeletedNote(null);
+    }
   };
 
   return (
-    <NotesContext.Provider value={{ notes, loading, addOrUpdateNote, removeNote }}>
+    <NotesContext.Provider value={{ 
+      notes, 
+      loading, 
+      addOrUpdateNote, 
+      removeNote, 
+      lastDeletedNote,
+      undoDelete 
+    }}>
       {children}
     </NotesContext.Provider>
   );
