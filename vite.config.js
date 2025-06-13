@@ -12,7 +12,7 @@ export default defineConfig({
         short_name: 'TaskMark',
         description: 'Offline Notes App',
         theme_color: '#111827',
-        background_color: '#111827',
+        background_color: '#1A3636',
         display: 'standalone',
         start_url: '.',
         icons: [
