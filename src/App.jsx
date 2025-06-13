@@ -702,13 +702,7 @@ function App() {
             setSearchQuery={setSearchQuery}
           />
         </main>
-        {notification && (
-          <Notification
-            message={notification.message}
-            type={notification.type}
-            onClose={() => setNotification(null)}
-          />
-        )}
+        <NotificationWrapper />
       </div>
     </NotesProvider>
   );
@@ -788,6 +782,20 @@ function ExportImportButtons({ notesAppRef }) {
         onChange={handleImport}
       />
     </>
+  );
+}
+
+function NotificationWrapper() {
+  const { notification, setNotification } = useNotes();
+
+  if (!notification) return null;
+
+  return (
+    <Notification
+      message={notification.message}
+      type={notification.type}
+      onClose={() => setNotification(null)}
+    />
   );
 }
 
