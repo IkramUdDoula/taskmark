@@ -786,7 +786,25 @@ function ExportImportButtons({ notesAppRef }) {
 }
 
 function NotificationWrapper() {
-  const { notification, setNotification } = useNotes();
+  const { notification, setNotification, lastDeletedNote, undoDelete } = useNotes();
+  const [key, setKey] = useState(Date.now());
+
+  useEffect(() => {
+    if (lastDeletedNote) {
+      setKey(Date.now());
+    }
+  }, [lastDeletedNote]);
+
+  if (lastDeletedNote) {
+    return (
+      <Notification
+        key={key}
+        message="Note Deleted"
+        onUndo={undoDelete}
+        duration={5000}
+      />
+    );
+  }
 
   if (!notification) return null;
 
