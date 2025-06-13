@@ -128,4 +128,4 @@ This project is licensed under the MIT License.
 
 ---
 
-*TaskMark — Organize your notes, never lose track of your tasks!*
+*TaskMark — Organize your notes, never lose track of your tasks!* 
