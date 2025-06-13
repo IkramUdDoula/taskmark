@@ -12,11 +12,6 @@ TaskMark is a productivity web application designed to help users organize and m
 - 🗑️ Easy note deletion and management
 - 📦 Import/Export notes as JSON
 
-### AI-Powered Features
-- 🤖 AI-generated checklists from natural language
-- 📋 Smart task organization
-- 🔄 Automatic task suggestions
-
 ### User Experience
 - 🌓 Multiple themes (Pastel, Light, Dark)
 - ⌨️ Keyboard shortcuts for power users
