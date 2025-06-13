@@ -535,6 +535,14 @@ function App() {
     document.documentElement.classList.add(`theme-${theme}`);
     // Save theme to localStorage
     localStorage.setItem('theme', theme);
+    
+    // Update theme-color meta tag
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      const computedStyle = getComputedStyle(document.documentElement);
+      const bgColor = computedStyle.getPropertyValue('--bg-primary').trim();
+      metaThemeColor.setAttribute('content', bgColor);
+    }
   }, [theme]);
 
   return (
