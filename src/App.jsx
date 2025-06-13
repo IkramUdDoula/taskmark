@@ -143,7 +143,7 @@ function NotesSidebar({ notes, selectedId, onSelect, onAdd, isMobileOpen, onMobi
                     dangerouslySetInnerHTML={{ __html: titleDisplay }}
                   />
                   <p className="text-xs text-[var(--text-secondary)] font-mono">
-                    {formatDate(note.updated || note.created)}
+                    {formatDate(note.created)}
                   </p>
                 </div>
               </li>
@@ -394,11 +394,14 @@ function NoteEditor({ note, onSave, onDelete }) {
       <div className="shrink-0 border-t border-[var(--border)] bg-[var(--bg-secondary)]">
         <div className="flex items-center justify-between p-2 px-4 text-xs text-[var(--text-secondary)]">
           <div className="flex items-center space-x-4">
-            <span>Last updated: {formatDate(note.updated || note.created)}</span>
+            <div className="flex items-center gap-1" title={`Last updated: ${formatDate(note.updated || note.created)}`}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span>{formatDate(note.updated || note.created)}</span>
+            </div>
             <span className="text-[var(--text-muted)]">•</span>
             <span>{stats.words} words</span>
-            <span className="text-[var(--text-muted)]">•</span>
-            <span>{stats.lines} lines</span>
           </div>
           <button
             onClick={() => onDelete(note.id)}
