@@ -118,8 +118,21 @@ function SearchBar({
                           <div className="text-sm text-[var(--text-secondary)] truncate">
                             {note.blocks?.[0]?.text?.substring(0, 100) || ''}
                           </div>
-                          <div className="text-xs text-[var(--text-muted)] mt-1">
-                            {formatDate(note.updated || note.created)}
+                          <div className="flex items-center gap-4 text-xs text-[var(--text-muted)] mt-1">
+                            <div className="flex items-center gap-1">
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span>Created: {formatDate(note.created)}</span>
+                            </div>
+                            {note.updated && note.updated !== note.created && (
+                              <div className="flex items-center gap-1">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                <span>Updated: {formatDate(note.updated)}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                         {note.tags && note.tags.length > 0 && (
