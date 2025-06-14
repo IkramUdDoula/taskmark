@@ -740,6 +740,7 @@ function App() {
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
               onSearchSelect={handleSearchSelect}
+              notesAppRef={notesAppRef}
             />
             
             {/* Recycle Bin */}
