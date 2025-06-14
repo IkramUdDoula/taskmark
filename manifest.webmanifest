@@ -21,22 +21,28 @@
       "purpose": "maskable"
     }
   ],
-  "splash_pages": null,
+  "splash_pages": true,
   "screenshots": [
     {
       "src": "/icons/splash-640x1136.png",
       "sizes": "640x1136",
-      "type": "image/png"
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "TaskMark on mobile"
     },
     {
       "src": "/icons/splash-750x1334.png",
       "sizes": "750x1334",
-      "type": "image/png"
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "TaskMark on mobile"
     },
     {
       "src": "/icons/splash-1242x2208.png",
       "sizes": "1242x2208",
-      "type": "image/png"
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "TaskMark on mobile"
     }
   ]
 } 
