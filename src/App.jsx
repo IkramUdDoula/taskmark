@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } f
 import { NotesProvider, useNotes } from './NotesContext';
 import Notification from './Notification';
 import RecycleBinModal from './RecycleBinModal';
+import SearchBar from './components/SearchBar';
 import './index.css';
 
 function formatDate(dateString) {
@@ -40,6 +41,9 @@ function NotesSidebar({ notes, selectedId, onSelect, onAdd, isMobileOpen, onMobi
       (note.title && note.title.toLowerCase().includes(query)) ||
       (note.blocks && note.blocks.some(block => 
         block.type === 'text' && block.text.toLowerCase().includes(query)
+      )) ||
+      (note.tags && note.tags.some(tag => 
+        tag.toLowerCase().includes(query)
       )) ||
       createdDate.includes(query) ||
       updatedDate.includes(query)
@@ -105,7 +109,7 @@ function NotesSidebar({ notes, selectedId, onSelect, onAdd, isMobileOpen, onMobi
         <button
           className="w-full p-4 text-left border-b border-[var(--border)] hover:bg-[var(--hover)] hover:rounded-t-lg transition-colors flex items-center justify-between group font-mono tracking-tight text-base rounded-t-lg"
           onClick={handleAddInternal}
-          title="Add a new note"
+          title="Add a new note (Alt+N)"
         >
           <span className="font-semibold text-lg text-[var(--text-primary)] font-mono tracking-tight">New Note</span>
           <span className="w-7 h-7 flex items-center justify-center text-[var(--accent)] bg-[var(--bg-tertiary)] rounded transition-colors">
@@ -131,13 +135,16 @@ function NotesSidebar({ notes, selectedId, onSelect, onAdd, isMobileOpen, onMobi
             return (
               <li
                 key={note.id}
-                className={`cursor-pointer transition-colors duration-150 ${ 
+                className={`cursor-pointer transition-colors duration-150 relative ${ 
                   note.id === selectedId 
-                    ? 'bg-[var(--selected)] border-l-4 border-[var(--accent)]' 
+                    ? 'bg-[var(--selected)]' 
                     : 'hover:bg-[var(--hover)]'
                 }`}
                 onClick={() => handleSelect(note.id)}
               >
+                {note.id === selectedId && (
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--accent)]"></div>
+                )}
                 <div className="px-4 py-3">
                   <h3 
                     className="font-semibold text-[var(--text-primary)] truncate font-mono" 
@@ -188,6 +195,8 @@ function NoteEditor({ note, onSave, onDelete }) {
   const [blocks, setBlocks] = useState(note?.blocks && note.blocks.length > 0 ? note.blocks : defaultBlocks);
   const [stats, setStats] = useState({ words: 0, lines: 0 });
   const [focusedBlockIdx, setFocusedBlockIdx] = useState(null);
+  const [newTag, setNewTag] = useState('');
+  const [isTagsExpanded, setIsTagsExpanded] = useState(false);
   const textareaRefs = useRef([]);
 
   // Helper: Apply formatting to text
@@ -280,7 +289,14 @@ function NoteEditor({ note, onSave, onDelete }) {
 
       if (e.altKey && e.key.toLowerCase() === 't') {
         e.preventDefault();
-        insertBlock('text', blocks.length); 
+        setIsTagsExpanded(true);
+        // Focus the tag input after a short delay to ensure the input is rendered
+        setTimeout(() => {
+          const tagInput = document.querySelector('input[placeholder="Add tag..."]');
+          if (tagInput) {
+            tagInput.focus();
+          }
+        }, 100);
       }
     };
 
@@ -355,6 +371,29 @@ function NoteEditor({ note, onSave, onDelete }) {
     setStats({ words: totalWords, lines: totalLines });
   }, [blocks]);
 
+  const handleAddTag = (e) => {
+    e.preventDefault();
+    if (!newTag.trim()) return;
+    
+    const tag = newTag.trim().toLowerCase();
+    if (!note.tags?.includes(tag) && (note.tags?.length || 0) < 4) {
+      const updatedNote = {
+        ...note,
+        tags: [...(note.tags || []), tag]
+      };
+      onSave(updatedNote);
+    }
+    setNewTag('');
+  };
+
+  const handleRemoveTag = (tagToRemove) => {
+    const updatedNote = {
+      ...note,
+      tags: (note.tags || []).filter(tag => tag !== tagToRemove)
+    };
+    onSave(updatedNote);
+  };
+
   if (!note) {
     return <div className="flex-1 flex items-center justify-center text-[var(--text-secondary)] p-8 font-mono" data-component-name="NoteEditor">Select or add a note to get started.</div>;
   }
@@ -391,6 +430,75 @@ function NoteEditor({ note, onSave, onDelete }) {
           </div>
         ))}
       </div>
+      
+      {/* Collapsible Tagging System */}
+      <div className="relative">
+        {/* Expand/Collapse Button */}
+        <button
+          onClick={() => setIsTagsExpanded(!isTagsExpanded)}
+          className="absolute right-4 -top-6 px-3 py-1.5 rounded-full text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--hover)] transition-colors bg-[var(--bg-tertiary)] border border-[var(--border)] flex items-center gap-1.5"
+          title={isTagsExpanded ? "Collapse tags" : "Expand tags"}
+        >
+          <span className="text-sm">Tags</span>
+          <svg 
+            className={`w-4 h-4 transition-transform duration-200 ${isTagsExpanded ? 'rotate-180' : ''}`} 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" />
+          </svg>
+        </button>
+
+        {/* Tags Section */}
+        <div className={`
+          mt-4 px-4 py-2 border-t border-[var(--border)] 
+          transition-all duration-200 ease-in-out
+          ${isTagsExpanded ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}
+        `}>
+          <div className="flex flex-wrap gap-2 items-center">
+            {note?.tags?.map((tag, index) => (
+              <span
+                key={index}
+                className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-[var(--bg-tertiary)] text-[var(--text-primary)] border border-[var(--border)] hover:bg-[var(--hover)] transition-colors"
+              >
+                #{tag}
+                <button
+                  onClick={() => handleRemoveTag(tag)}
+                  className="ml-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </span>
+            ))}
+            {(note?.tags?.length || 0) < 4 && (
+              <form onSubmit={handleAddTag} className="flex items-center">
+                <input
+                  type="text"
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  placeholder="Add tag..."
+                  className="bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-full px-3 py-1 focus:outline-none text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] hover:bg-[var(--hover)] transition-colors"
+                />
+                <button
+                  type="submit"
+                  className="ml-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </button>
+              </form>
+            )}
+            {(note?.tags?.length || 0) >= 4 && (
+              <span className="text-sm text-[var(--text-secondary)]">Maximum 4 tags reached</span>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Fixed Footer */}
       <div className="shrink-0 border-t border-[var(--border)] bg-[var(--bg-secondary)]">
         <div className="flex items-center justify-between p-2 px-4 text-xs text-[var(--text-secondary)]">
@@ -402,7 +510,21 @@ function NoteEditor({ note, onSave, onDelete }) {
               <span>{formatDate(note.updated || note.created)}</span>
             </div>
             <span className="text-[var(--text-muted)]">•</span>
-            <span>{stats.words} words</span>
+            <div className="flex items-center gap-1" title="Word count">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span>{stats.words}</span>
+            </div>
+            <span className="text-[var(--text-muted)]">•</span>
+            <div className="hidden sm:inline-flex items-center gap-2" title="Keyboard shortcuts">
+              <div className="flex items-center gap-1">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                </svg>
+                <span>Alt+N - New | Alt+S - Search | Alt+T - Add Tag | Alt+Del - Delete</span>
+              </div>
+            </div>
           </div>
           <button
             onClick={() => onDelete(note.id)}
@@ -446,6 +568,7 @@ const NotesApp = forwardRef(({ isMobileSidebarOpen, setIsMobileSidebarOpen, sear
       blocks: [{ type: 'text', text: '' }], // default block
       created: now.toISOString(),
       updated: now.toISOString(),
+      tags: [], // Initialize empty tags array
     };
     addOrUpdateNote(newNote);
     setPendingNewId(newNote.id);
@@ -476,7 +599,32 @@ const NotesApp = forwardRef(({ isMobileSidebarOpen, setIsMobileSidebarOpen, sear
     getSelectedNote: () => {
       return selectedNote;
     },
-    handleDelete: handleDelete
+    handleDelete: handleDelete,
+    getFilteredNotes: () => {
+      return sortedNotes.filter(note => {
+        if (!searchQuery) return true;
+        const query = searchQuery.toLowerCase();
+        
+        // Format dates for searching
+        const createdDate = formatDate(note.created || '').toLowerCase();
+        const updatedDate = formatDate(note.updated || note.created || '').toLowerCase();
+        
+        return (
+          (note.title && note.title.toLowerCase().includes(query)) ||
+          (note.blocks && note.blocks.some(block => 
+            block.type === 'text' && block.text.toLowerCase().includes(query)
+          )) ||
+          (note.tags && note.tags.some(tag => 
+            tag.toLowerCase().includes(query)
+          )) ||
+          createdDate.includes(query) ||
+          updatedDate.includes(query)
+        );
+      });
+    },
+    selectNote: (id) => {
+      setSelectedId(id);
+    }
   }));
 
   if (loading) {
@@ -520,15 +668,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);
-  const searchInputRef = useRef(null);
   const notesAppRef = useRef(null);
-
-  // Focus search input when search is opened
-  useEffect(() => {
-    if (isSearchOpen && searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  }, [isSearchOpen]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -554,11 +694,17 @@ function App() {
         setIsSearchOpen(true);
       }
 
-      // Escape: Close search
-      if (e.key === 'Escape' && isSearchOpen) {
-        e.preventDefault();
-        setIsSearchOpen(false);
-        setSearchQuery('');
+      // Escape: Close search or recycle bin
+      if (e.key === 'Escape') {
+        if (isSearchOpen) {
+          e.preventDefault();
+          setIsSearchOpen(false);
+          setSearchQuery('');
+        }
+        if (isRecycleBinOpen) {
+          e.preventDefault();
+          setIsRecycleBinOpen(false);
+        }
       }
     };
 
@@ -566,7 +712,16 @@ function App() {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isSearchOpen]); // Added isSearchOpen to dependencies
+  }, [isSearchOpen, isRecycleBinOpen]);
+
+  const handleSearchSelect = () => {
+    const filteredNotes = notesAppRef.current?.getFilteredNotes();
+    if (filteredNotes && filteredNotes.length > 0) {
+      notesAppRef.current?.selectNote(filteredNotes[0].id);
+      setIsSearchOpen(false);
+      setSearchQuery('');
+    }
+  };
 
   const cycleTheme = () => {
     const themes = ['pastel', 'light', 'dark'];
@@ -606,60 +761,21 @@ function App() {
           {/* All header icons container */}
           <div className="flex items-center space-x-2">
             {/* Search */}
-            <div className="hidden sm:block">
-              <div className="relative">
-                {isSearchOpen ? (
-                  <div className="relative w-64">
-                    <input
-                      ref={searchInputRef}
-                      type="text"
-                      placeholder="Search notes..."
-                      className="w-full pl-8 pr-8 py-2 bg-[var(--bg-tertiary)] text-[var(--text-primary)] rounded-lg border border-[var(--border)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)] transition-all duration-200"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      onBlur={() => !searchQuery && setIsSearchOpen(false)}
-                    />
-                    <svg className="w-4 h-4 absolute left-2 top-3 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                    {searchQuery && (
-                      <button
-                        className="absolute right-2 top-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setSearchQuery('');
-                        }}
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setIsSearchOpen(true);
-                    }}
-                    className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
-                    aria-label="Search notes"
-                    data-tooltip="Search notes"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                  </button>
-                )}
-              </div>
-            </div>
+            <SearchBar
+              isSearchOpen={isSearchOpen}
+              setIsSearchOpen={setIsSearchOpen}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              onSearchSelect={handleSearchSelect}
+              notesAppRef={notesAppRef}
+            />
             
             {/* Recycle Bin */}
             <button
               onClick={() => setIsRecycleBinOpen(true)}
               className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
               aria-label="Recycle bin"
-              data-tooltip="Recycle bin"
+              title="Recycle Bin"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -671,7 +787,7 @@ function App() {
               onClick={cycleTheme}
               className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
               aria-label="Toggle theme"
-              data-tooltip="Toggle theme"
+              title="Toggle Theme"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
@@ -682,8 +798,8 @@ function App() {
             <button
               onClick={() => notesAppRef.current?.triggerAddNote()}
               className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
-              aria-label="Add new note"
-              data-tooltip="Add new note"
+              aria-label="Add a new note"
+              title="Add a new note (Alt+N)"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -696,7 +812,7 @@ function App() {
               className="sm:hidden p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
               aria-label="Toggle sidebar"
               aria-expanded={isMobileSidebarOpen}
-              data-tooltip="Toggle sidebar"
+              title=""
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>

@@ -1,82 +1,98 @@
-# TaskMark
+# Taskmark
 
-TaskMark is a productivity web application designed to help users organize and manage notes and checklists efficiently. Built with React and styled using Tailwind CSS, TaskMark offers an intuitive interface and smart features to streamline your workflow.
+A modern, minimalist note-taking application built with React and Vite. Taskmark combines simplicity with powerful features to help you organize your thoughts and tasks efficiently.
 
 ## Features
 
-### Note Management
-- 📝 Rich text editing with markdown support
-- 📱 Responsive design for desktop and mobile
-- 🔍 Full-text search across all notes
-- 📅 Automatic timestamps for creation and updates
-- 🗑️ Easy note deletion and management
-- 📦 Import/Export notes as JSON
+- 📝 **Clean, Minimalist Interface**: Focus on your content with a distraction-free writing experience
+- 🌓 **Multiple Themes**: Choose between Pastel, Light, and Dark themes
+- 🔍 **Powerful Search**:
+  - Search through titles, content, tags, and dates
+  - Real-time search suggestions with preview
+  - Shows both creation and update times
+  - Keyboard navigation (↑↓ arrows) in search results
+- 🏷️ **Tag System**: Organize notes with custom tags
+- 📱 **Responsive Design**: Works seamlessly on both desktop and mobile devices
+- ⚡ **Keyboard Shortcuts**:
+  - `Alt + N`: Create new note
+  - `Alt + Delete`: Delete current note
+  - `Alt + S`: Open search
+  - `Esc`: Close search/recycle bin
+- 🗑️ **Recycle Bin**: Safely delete notes with the ability to restore them
+- 🔄 **Auto-save**: Changes are saved automatically
+- 📱 **PWA Support**: Install as a Progressive Web App for offline access
 
-### User Experience
-- 🌓 Multiple themes (Pastel, Light, Dark)
-- ⌨️ Keyboard shortcuts for power users
-- 📱 Progressive Web App (PWA) support
-- 💾 Offline-first functionality
-- 🔄 Real-time auto-save
-- 📊 Word count and statistics
+## Tech Stack
 
-## Getting Started
+- React 18
+- Vite
+- TailwindCSS
+- CSS Variables for theming
+- PWA Support (vite-plugin-pwa)
 
-### Prerequisites
-- Node.js (v16 or above recommended)
-- npm or yarn
+## Installation
 
-### Installation
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/taskmark.git
-   cd taskmark
-   ```
+```bash
+git clone https://github.com/yourusername/taskmark.git
+cd taskmark
+```
+
 2. Install dependencies:
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
+```bash
+npm install
+```
+
 3. Start the development server:
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   ```
-4. Open your browser and go to `http://localhost:5173` (or the port shown in your terminal).
-
-## Project Structure
-```
-taskmark/
-│
-├── src/
-│   ├── App.jsx              # Main application component
-│   ├── AIChecklist.jsx      # AI-powered checklist component
-│   ├── NotesContext.jsx     # Context provider for notes and checklist
-│   ├── index.css            # Global styles (Tailwind CSS)
-│   └── main.jsx             # Entry point
-│
-├── public/
-│   └── index.html           # HTML template
-│
-├── package.json             # Project metadata and scripts
-├── tailwind.config.js       # Tailwind CSS configuration
-├── postcss.config.js        # PostCSS configuration
-└── vite.config.js           # Vite configuration
+```bash
+npm run dev
 ```
 
-## Scripts
-- `npm run dev` — Start the development server
-- `npm run build` — Build for production
-- `npm run preview` — Preview the production build
+## Development
 
-## Customization
-You can easily extend TaskMark by adding new features or integrating additional AI capabilities. The modular structure and use of React Context make it easy to manage and scale the app.
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build locally
+
+## Usage
+
+### Creating Notes
+- Click the "+" button in the header or use `Alt + N` to create a new note
+- Each note starts with an empty text block
+- Add a title to your note (optional)
+
+### Managing Notes
+- Use the sidebar to navigate between notes
+- Notes are automatically sorted by creation date (newest first)
+- Delete notes using the trash icon or `Alt + Delete`
+- Deleted notes can be recovered from the recycle bin
+
+### Organizing with Tags
+- Add tags to your notes
+- Tags are automatically converted to lowercase
+- Use tags to categorize and filter your notes
+
+### Searching
+- Use `Alt + S` or click the search icon to open search
+- Search through titles, content, tags, and dates
+- Results update in real-time as you type
+- Use arrow keys to navigate through search results
+- Press Enter to select a note
+- Press Esc to close search
+
+### Recycle Bin
+- Access deleted notes from the recycle bin
+- Restore or permanently delete notes
+- Press Esc to close the recycle bin modal
+
+### Themes
+- Click the theme toggle button to cycle through available themes
+- Theme preference is saved in your browser
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
-This project is licensed under the MIT License.
 
----
-
-*TaskMark — Organize your notes, never lose track of your tasks!*
+This project is licensed under the MIT License - see the LICENSE file for details.
