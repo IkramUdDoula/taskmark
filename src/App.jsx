@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { NotesProvider, useNotes } from './NotesContext';
 import Notification from './Notification';
+import RecycleBinModal from './RecycleBinModal';
 import './index.css';
 
 function formatDate(dateString) {
@@ -518,6 +519,7 @@ function App() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);
   const searchInputRef = useRef(null);
   const notesAppRef = useRef(null);
 
@@ -651,11 +653,18 @@ function App() {
                 )}
               </div>
             </div>
-
-            {/* Export/Import Buttons */}
-            <div className="flex items-center space-x-2">
-              <ExportImportButtons notesAppRef={notesAppRef} />
-            </div>
+            
+            {/* Recycle Bin */}
+            <button
+              onClick={() => setIsRecycleBinOpen(true)}
+              className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
+              aria-label="Recycle bin"
+              data-tooltip="Recycle bin"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
             
             {/* Theme Toggle */}
             <button
@@ -705,85 +714,9 @@ function App() {
           />
         </main>
         <NotificationWrapper />
+        <RecycleBinModal isOpen={isRecycleBinOpen} onClose={() => setIsRecycleBinOpen(false)} />
       </div>
     </NotesProvider>
-  );
-}
-
-function ExportImportButtons({ notesAppRef }) {
-  const { notes, addOrUpdateNote, removeNote } = useNotes();
-
-  // Export notes as JSON
-  const handleExport = () => {
-    const data = JSON.stringify(notes, null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'taskmark-notes.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  // Import notes from JSON
-  const handleImportClick = () => {
-    document.getElementById('import-notes-input').click();
-  };
-
-  const handleImport = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    try {
-      const text = await file.text();
-      const importedNotes = JSON.parse(text);
-      if (!Array.isArray(importedNotes)) throw new Error('Invalid notes JSON');
-      // Remove all current notes, then add imported
-      for (const note of notes) {
-        await removeNote(note.id);
-      }
-      for (const note of importedNotes) {
-        await addOrUpdateNote(note);
-      }
-      alert('Notes imported successfully!');
-    } catch (err) {
-      alert('Failed to import notes: ' + err.message);
-    }
-    e.target.value = '';
-  };
-
-  return (
-    <>
-      <button
-        onClick={handleExport}
-        className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
-        aria-label="Export notes"
-        data-tooltip="Export notes"
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-        </svg>
-      </button>
-      <button
-        onClick={handleImportClick}
-        className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
-        aria-label="Import notes"
-        type="button"
-        data-tooltip="Import notes"
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-        </svg>
-      </button>
-      <input
-        id="import-notes-input"
-        type="file"
-        accept="application/json"
-        style={{ display: 'none' }}
-        onChange={handleImport}
-      />
-    </>
   );
 }
 
