@@ -1,6 +1,6 @@
 # Taskmark
 
-A modern, minimalist note-taking application built with React. Taskmark combines simplicity with powerful features to help you organize your thoughts and tasks efficiently.
+A modern, minimalist note-taking application built with React and Vite. Taskmark combines simplicity with powerful features to help you organize your thoughts and tasks efficiently.
 
 ## Features
 
@@ -22,6 +22,15 @@ A modern, minimalist note-taking application built with React. Taskmark combines
 - 🗑️ **Recycle Bin**: Safely delete notes with the ability to restore them
 - 📊 **Note Statistics**: View word count and last update time
 - 🔄 **Auto-save**: Changes are saved automatically
+- 📱 **PWA Support**: Install as a Progressive Web App for offline access
+
+## Tech Stack
+
+- React 18
+- Vite 6
+- TailwindCSS
+- PWA Support
+- React Markdown
 
 ## Installation
 
@@ -38,8 +47,14 @@ npm install
 
 3. Start the development server:
 ```bash
-npm start
+npm run dev
 ```
+
+## Development
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build locally
 
 ## Usage
 
