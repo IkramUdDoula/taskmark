@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } f
 import { NotesProvider, useNotes } from './NotesContext';
 import Notification from './Notification';
 import RecycleBinModal from './RecycleBinModal';
+import SearchBar from './components/SearchBar';
 import './index.css';
 
 function formatDate(dateString) {
@@ -646,15 +647,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);
-  const searchInputRef = useRef(null);
   const notesAppRef = useRef(null);
-
-  // Focus search input when search is opened
-  useEffect(() => {
-    if (isSearchOpen && searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  }, [isSearchOpen]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -692,7 +685,16 @@ function App() {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isSearchOpen]); // Added isSearchOpen to dependencies
+  }, [isSearchOpen]);
+
+  const handleSearchSelect = () => {
+    const filteredNotes = notesAppRef.current?.getFilteredNotes();
+    if (filteredNotes && filteredNotes.length > 0) {
+      notesAppRef.current?.selectNote(filteredNotes[0].id);
+      setIsSearchOpen(false);
+      setSearchQuery('');
+    }
+  };
 
   const cycleTheme = () => {
     const themes = ['pastel', 'light', 'dark'];
@@ -732,64 +734,13 @@ function App() {
           {/* All header icons container */}
           <div className="flex items-center space-x-2">
             {/* Search */}
-            <div className="hidden sm:block">
-              <div className="relative">
-                {isSearchOpen ? (
-                  <div className="relative w-64">
-                    <input
-                      ref={searchInputRef}
-                      type="text"
-                      placeholder="Search notes..."
-                      className="w-full pl-8 pr-8 py-2 bg-[var(--bg-tertiary)] text-[var(--text-primary)] rounded-lg border border-[var(--border)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)] transition-all duration-200"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      onBlur={() => !searchQuery && setIsSearchOpen(false)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && searchQuery) {
-                          e.preventDefault();
-                          const filteredNotes = notesAppRef.current?.getFilteredNotes();
-                          if (filteredNotes && filteredNotes.length > 0) {
-                            notesAppRef.current?.selectNote(filteredNotes[0].id);
-                            setIsSearchOpen(false);
-                            setSearchQuery('');
-                          }
-                        }
-                      }}
-                    />
-                    <svg className="w-4 h-4 absolute left-2 top-3 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                    {searchQuery && (
-                      <button
-                        className="absolute right-2 top-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setSearchQuery('');
-                        }}
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setIsSearchOpen(true);
-                    }}
-                    className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
-                    aria-label="Search notes"
-                    data-tooltip="Search notes"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                  </button>
-                )}
-              </div>
-            </div>
+            <SearchBar
+              isSearchOpen={isSearchOpen}
+              setIsSearchOpen={setIsSearchOpen}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              onSearchSelect={handleSearchSelect}
+            />
             
             {/* Recycle Bin */}
             <button
