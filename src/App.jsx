@@ -694,11 +694,17 @@ function App() {
         setIsSearchOpen(true);
       }
 
-      // Escape: Close search
-      if (e.key === 'Escape' && isSearchOpen) {
-        e.preventDefault();
-        setIsSearchOpen(false);
-        setSearchQuery('');
+      // Escape: Close search or recycle bin
+      if (e.key === 'Escape') {
+        if (isSearchOpen) {
+          e.preventDefault();
+          setIsSearchOpen(false);
+          setSearchQuery('');
+        }
+        if (isRecycleBinOpen) {
+          e.preventDefault();
+          setIsRecycleBinOpen(false);
+        }
       }
     };
 
@@ -706,7 +712,7 @@ function App() {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isSearchOpen]);
+  }, [isSearchOpen, isRecycleBinOpen]);
 
   const handleSearchSelect = () => {
     const filteredNotes = notesAppRef.current?.getFilteredNotes();

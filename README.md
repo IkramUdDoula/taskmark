@@ -11,26 +11,24 @@ A modern, minimalist note-taking application built with React and Vite. Taskmark
   - Real-time search suggestions with preview
   - Shows both creation and update times
   - Keyboard navigation (↑↓ arrows) in search results
-- 🏷️ **Tag System**: Organize notes with up to 4 custom tags per note
+- 🏷️ **Tag System**: Organize notes with custom tags
 - 📱 **Responsive Design**: Works seamlessly on both desktop and mobile devices
 - ⚡ **Keyboard Shortcuts**:
   - `Alt + N`: Create new note
   - `Alt + Delete`: Delete current note
   - `Alt + S`: Open search
-  - `Alt + T`: Add new text block
-  - `Esc`: Close search/mobile sidebar
+  - `Esc`: Close search/recycle bin
 - 🗑️ **Recycle Bin**: Safely delete notes with the ability to restore them
-- 📊 **Note Statistics**: View word count and last update time
 - 🔄 **Auto-save**: Changes are saved automatically
 - 📱 **PWA Support**: Install as a Progressive Web App for offline access
 
 ## Tech Stack
 
 - React 18
-- Vite 6
+- Vite
 - TailwindCSS
-- PWA Support
-- React Markdown
+- CSS Variables for theming
+- PWA Support (vite-plugin-pwa)
 
 ## Installation
 
@@ -70,7 +68,7 @@ npm run dev
 - Deleted notes can be recovered from the recycle bin
 
 ### Organizing with Tags
-- Add up to 4 tags per note
+- Add tags to your notes
 - Tags are automatically converted to lowercase
 - Use tags to categorize and filter your notes
 
@@ -81,6 +79,11 @@ npm run dev
 - Use arrow keys to navigate through search results
 - Press Enter to select a note
 - Press Esc to close search
+
+### Recycle Bin
+- Access deleted notes from the recycle bin
+- Restore or permanently delete notes
+- Press Esc to close the recycle bin modal
 
 ### Themes
 - Click the theme toggle button to cycle through available themes
