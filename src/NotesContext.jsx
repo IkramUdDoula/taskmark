@@ -57,6 +57,7 @@ export function NotesProvider({ children }) {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastDeletedNote, setLastDeletedNote] = useState(null);
+  const [deletedNotes, setDeletedNotes] = useState([]);
 
   useEffect(() => {
     getAllNotes().then((n) => {
@@ -88,15 +89,29 @@ export function NotesProvider({ children }) {
     const noteToDelete = notes.find(n => n.id === id);
     if (noteToDelete) {
       setLastDeletedNote(noteToDelete);
+      setDeletedNotes(prev => [...prev, { ...noteToDelete, deletedAt: new Date().toISOString() }]);
       await deleteNote(id);
       setNotes((prev) => prev.filter((n) => n.id !== id));
     }
+  };
+
+  const restoreNote = async (id) => {
+    const noteToRestore = deletedNotes.find(n => n.id === id);
+    if (noteToRestore) {
+      await addOrUpdateNote(noteToRestore);
+      setDeletedNotes(prev => prev.filter(n => n.id !== id));
+    }
+  };
+
+  const permanentlyDeleteNote = async (id) => {
+    setDeletedNotes(prev => prev.filter(n => n.id !== id));
   };
 
   const undoDelete = async () => {
     if (lastDeletedNote) {
       await addOrUpdateNote(lastDeletedNote);
       setLastDeletedNote(null);
+      setDeletedNotes(prev => prev.filter(n => n.id !== lastDeletedNote.id));
     }
   };
 
@@ -107,7 +122,10 @@ export function NotesProvider({ children }) {
       addOrUpdateNote, 
       removeNote, 
       lastDeletedNote,
-      undoDelete 
+      undoDelete,
+      deletedNotes,
+      restoreNote,
+      permanentlyDeleteNote
     }}>
       {children}
     </NotesContext.Provider>
