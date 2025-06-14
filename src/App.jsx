@@ -134,13 +134,16 @@ function NotesSidebar({ notes, selectedId, onSelect, onAdd, isMobileOpen, onMobi
             return (
               <li
                 key={note.id}
-                className={`cursor-pointer transition-colors duration-150 ${ 
+                className={`cursor-pointer transition-colors duration-150 relative ${ 
                   note.id === selectedId 
-                    ? 'bg-[var(--selected)] border-l-4 border-[var(--accent)]' 
+                    ? 'bg-[var(--selected)]' 
                     : 'hover:bg-[var(--hover)]'
                 }`}
                 onClick={() => handleSelect(note.id)}
               >
+                {note.id === selectedId && (
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--accent)]"></div>
+                )}
                 <div className="px-4 py-3">
                   <h3 
                     className="font-semibold text-[var(--text-primary)] truncate font-mono" 
@@ -574,7 +577,32 @@ const NotesApp = forwardRef(({ isMobileSidebarOpen, setIsMobileSidebarOpen, sear
     getSelectedNote: () => {
       return selectedNote;
     },
-    handleDelete: handleDelete
+    handleDelete: handleDelete,
+    getFilteredNotes: () => {
+      return sortedNotes.filter(note => {
+        if (!searchQuery) return true;
+        const query = searchQuery.toLowerCase();
+        
+        // Format dates for searching
+        const createdDate = formatDate(note.created || '').toLowerCase();
+        const updatedDate = formatDate(note.updated || note.created || '').toLowerCase();
+        
+        return (
+          (note.title && note.title.toLowerCase().includes(query)) ||
+          (note.blocks && note.blocks.some(block => 
+            block.type === 'text' && block.text.toLowerCase().includes(query)
+          )) ||
+          (note.tags && note.tags.some(tag => 
+            tag.toLowerCase().includes(query)
+          )) ||
+          createdDate.includes(query) ||
+          updatedDate.includes(query)
+        );
+      });
+    },
+    selectNote: (id) => {
+      setSelectedId(id);
+    }
   }));
 
   if (loading) {
@@ -716,6 +744,17 @@ function App() {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onBlur={() => !searchQuery && setIsSearchOpen(false)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && searchQuery) {
+                          e.preventDefault();
+                          const filteredNotes = notesAppRef.current?.getFilteredNotes();
+                          if (filteredNotes && filteredNotes.length > 0) {
+                            notesAppRef.current?.selectNote(filteredNotes[0].id);
+                            setIsSearchOpen(false);
+                            setSearchQuery('');
+                          }
+                        }
+                      }}
                     />
                     <svg className="w-4 h-4 absolute left-2 top-3 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
