@@ -1,6 +1,6 @@
 # Taskmark Documentation
 
-## Project Structure
+## Project Structure 
 
 ```
 taskmark/
