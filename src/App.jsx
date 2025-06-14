@@ -109,7 +109,7 @@ function NotesSidebar({ notes, selectedId, onSelect, onAdd, isMobileOpen, onMobi
         <button
           className="w-full p-4 text-left border-b border-[var(--border)] hover:bg-[var(--hover)] hover:rounded-t-lg transition-colors flex items-center justify-between group font-mono tracking-tight text-base rounded-t-lg"
           onClick={handleAddInternal}
-          title="Add a new note"
+          title="Add a new note (Alt+N)"
         >
           <span className="font-semibold text-lg text-[var(--text-primary)] font-mono tracking-tight">New Note</span>
           <span className="w-7 h-7 flex items-center justify-center text-[var(--accent)] bg-[var(--bg-tertiary)] rounded transition-colors">
@@ -792,8 +792,8 @@ function App() {
             <button
               onClick={() => notesAppRef.current?.triggerAddNote()}
               className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
-              aria-label="Add new note"
-              title="New Note (Alt+N)"
+              aria-label="Add a new note"
+              title="Add a new note (Alt+N)"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
