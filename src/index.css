@@ -78,14 +78,11 @@
   --button-delete-icon-hover: #B71C1C;
 }
 
-html {
-  min-height: 100%;
-  font-family: 'Fira Code', 'Fira Mono', 'JetBrains Mono', 'Menlo', 'Consolas', monospace;
+/* Unified background rule for the entire app */
+html, body, #root {
+  min-height: 100vh;
   background: var(--bg-primary);
   color: var(--text-primary);
-}
-
-body {
   font-family: 'Fira Code', 'Fira Mono', 'JetBrains Mono', 'Menlo', 'Consolas', monospace;
 }
 
@@ -127,34 +124,26 @@ body {
   visibility: visible;
 }
 
-body {
-  min-height: 100vh;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  /* Removed backdrop-filter for a flatter, code-editor look */
-  transition: background 0.3s, color 0.3s; /* Keep transitions for smoothness if any dynamic changes occur */
-}
-
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-secondary); /* Use a darker track */
+  background: var(--bg-secondary);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border); /* Use border color for thumb */
+  background: var(--border);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted); /* Use muted text color for hover */
+  background: var(--text-muted);
 }
 
-/* Base Typography (optional, can be handled by Tailwind in JSX) */
+/* Base Typography */
 h1, h2, h3, h4, h5, h6 {
   color: var(--text-primary);
 }
