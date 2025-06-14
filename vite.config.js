@@ -16,6 +16,8 @@ export default defineConfig({
         background_color: '#1A3636',
         display: 'standalone',
         start_url: '/',
+        scope: '/',
+        orientation: 'portrait',
         icons: [
           {
             src: '/icons/icon-512x512.png',
@@ -66,6 +68,10 @@ export default defineConfig({
             }
           }
         ]
+      },
+      devOptions: {
+        enabled: true,
+        type: 'module'
       }
     })
   ],
