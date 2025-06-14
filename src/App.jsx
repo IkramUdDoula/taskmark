@@ -41,6 +41,9 @@ function NotesSidebar({ notes, selectedId, onSelect, onAdd, isMobileOpen, onMobi
       (note.blocks && note.blocks.some(block => 
         block.type === 'text' && block.text.toLowerCase().includes(query)
       )) ||
+      (note.tags && note.tags.some(tag => 
+        tag.toLowerCase().includes(query)
+      )) ||
       createdDate.includes(query) ||
       updatedDate.includes(query)
     );
@@ -188,6 +191,8 @@ function NoteEditor({ note, onSave, onDelete }) {
   const [blocks, setBlocks] = useState(note?.blocks && note.blocks.length > 0 ? note.blocks : defaultBlocks);
   const [stats, setStats] = useState({ words: 0, lines: 0 });
   const [focusedBlockIdx, setFocusedBlockIdx] = useState(null);
+  const [newTag, setNewTag] = useState('');
+  const [isTagsExpanded, setIsTagsExpanded] = useState(false);
   const textareaRefs = useRef([]);
 
   // Helper: Apply formatting to text
@@ -355,6 +360,29 @@ function NoteEditor({ note, onSave, onDelete }) {
     setStats({ words: totalWords, lines: totalLines });
   }, [blocks]);
 
+  const handleAddTag = (e) => {
+    e.preventDefault();
+    if (!newTag.trim()) return;
+    
+    const tag = newTag.trim().toLowerCase();
+    if (!note.tags?.includes(tag) && (note.tags?.length || 0) < 4) {
+      const updatedNote = {
+        ...note,
+        tags: [...(note.tags || []), tag]
+      };
+      onSave(updatedNote);
+    }
+    setNewTag('');
+  };
+
+  const handleRemoveTag = (tagToRemove) => {
+    const updatedNote = {
+      ...note,
+      tags: (note.tags || []).filter(tag => tag !== tagToRemove)
+    };
+    onSave(updatedNote);
+  };
+
   if (!note) {
     return <div className="flex-1 flex items-center justify-center text-[var(--text-secondary)] p-8 font-mono" data-component-name="NoteEditor">Select or add a note to get started.</div>;
   }
@@ -391,6 +419,75 @@ function NoteEditor({ note, onSave, onDelete }) {
           </div>
         ))}
       </div>
+      
+      {/* Collapsible Tagging System */}
+      <div className="relative">
+        {/* Expand/Collapse Button */}
+        <button
+          onClick={() => setIsTagsExpanded(!isTagsExpanded)}
+          className="absolute right-4 -top-6 px-3 py-1.5 rounded-full text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--hover)] transition-colors bg-[var(--bg-tertiary)] border border-[var(--border)] flex items-center gap-1.5"
+          title={isTagsExpanded ? "Collapse tags" : "Expand tags"}
+        >
+          <span className="text-sm">Tags</span>
+          <svg 
+            className={`w-4 h-4 transition-transform duration-200 ${isTagsExpanded ? 'rotate-180' : ''}`} 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" />
+          </svg>
+        </button>
+
+        {/* Tags Section */}
+        <div className={`
+          mt-4 px-4 py-2 border-t border-[var(--border)] 
+          transition-all duration-200 ease-in-out
+          ${isTagsExpanded ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}
+        `}>
+          <div className="flex flex-wrap gap-2 items-center">
+            {note?.tags?.map((tag, index) => (
+              <span
+                key={index}
+                className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-[var(--bg-tertiary)] text-[var(--text-primary)] border border-[var(--border)] hover:bg-[var(--hover)] transition-colors"
+              >
+                #{tag}
+                <button
+                  onClick={() => handleRemoveTag(tag)}
+                  className="ml-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </span>
+            ))}
+            {(note?.tags?.length || 0) < 4 && (
+              <form onSubmit={handleAddTag} className="flex items-center">
+                <input
+                  type="text"
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  placeholder="Add tag..."
+                  className="bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-full px-3 py-1 focus:outline-none text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] hover:bg-[var(--hover)] transition-colors"
+                />
+                <button
+                  type="submit"
+                  className="ml-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </button>
+              </form>
+            )}
+            {(note?.tags?.length || 0) >= 4 && (
+              <span className="text-sm text-[var(--text-secondary)]">Maximum 4 tags reached</span>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Fixed Footer */}
       <div className="shrink-0 border-t border-[var(--border)] bg-[var(--bg-secondary)]">
         <div className="flex items-center justify-between p-2 px-4 text-xs text-[var(--text-secondary)]">
@@ -446,6 +543,7 @@ const NotesApp = forwardRef(({ isMobileSidebarOpen, setIsMobileSidebarOpen, sear
       blocks: [{ type: 'text', text: '' }], // default block
       created: now.toISOString(),
       updated: now.toISOString(),
+      tags: [], // Initialize empty tags array
     };
     addOrUpdateNote(newNote);
     setPendingNewId(newNote.id);

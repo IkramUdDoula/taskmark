@@ -34,7 +34,9 @@ async function saveNote(note) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite');
     const store = tx.objectStore(STORE_NAME);
-    const req = store.put(note);
+    // Ensure tags array exists
+    const noteWithTags = { ...note, tags: note.tags || [] };
+    const req = store.put(noteWithTags);
     req.onsuccess = () => resolve();
     req.onerror = () => reject(req.error);
   });
