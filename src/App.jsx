@@ -8,6 +8,8 @@ import NoteEditor from './components/NoteEditor';
 import { useTheme } from './hooks/useTheme';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useNoteManagement } from './hooks/useNoteManagement';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import './index.css';
 
 function formatDate(dateString) {
@@ -198,6 +200,8 @@ function App() {
         </main>
         <NotificationWrapper />
         <RecycleBinModal isOpen={isRecycleBinOpen} onClose={() => setIsRecycleBinOpen(false)} />
+        <Analytics />
+        <SpeedInsights />
       </div>
     </NotesProvider>
   );
