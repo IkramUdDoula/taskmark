@@ -11,8 +11,8 @@ export default defineConfig({
       manifest: {
         name: 'TaskMark',
         short_name: 'TaskMark',
-        description: 'Offline Notes App',
-        theme_color: '#111827',
+        description: 'Private Notes App',
+        theme_color: '#1A3636',
         background_color: '#1A3636',
         display: 'standalone',
         start_url: '/',
@@ -21,7 +21,13 @@ export default defineConfig({
             src: '/icons/icon-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          {
+            src: '/icons/icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
           }
         ],
         screenshots: [
@@ -39,6 +45,25 @@ export default defineConfig({
             src: '/icons/splash-1242x2208.png',
             sizes: '1242x2208',
             type: 'image/png'
+          }
+        ]
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-cache',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
           }
         ]
       }

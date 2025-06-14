@@ -1,7 +1,7 @@
 {
   "name": "TaskMark",
   "short_name": "TaskMark",
-  "description": "Offline Notes App",
+  "description": "Private Notes App",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1A3636",
@@ -18,7 +18,7 @@
       "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "maskable"
     }
   ],
   "splash_pages": null,
