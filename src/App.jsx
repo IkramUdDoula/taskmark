@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { NotesProvider, useNotes } from './NotesContext';
+import { useAuth } from './contexts/AuthContext';
 import Notification from './Notification';
 import RecycleBinModal from './RecycleBinModal';
 import SearchBar from './components/SearchBar';
@@ -10,6 +12,9 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useNoteManagement } from './hooks/useNoteManagement';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
+import Login from './pages/auth/Login';
+import Signup from './pages/auth/Signup';
+import ResetPassword from './pages/auth/ResetPassword';
 import './index.css';
 
 function formatDate(dateString) {
@@ -85,6 +90,78 @@ const NotesApp = React.forwardRef(({ isMobileSidebarOpen, setIsMobileSidebarOpen
   );
 });
 
+function PrivateRoute({ children }) {
+  const { user } = useAuth();
+  const location = useLocation();
+  const isLocalMode = localStorage.getItem('taskmark_local_mode') === 'true';
+
+  if (!user && !isLocalMode) {
+    return <Navigate to="/auth/login" state={{ from: location }} replace />;
+  }
+
+  return children;
+}
+
+function ModeIndicator() {
+  const isLocalMode = localStorage.getItem('taskmark_local_mode') === 'true';
+  const { user } = useAuth();
+  const [showModeSwitch, setShowModeSwitch] = useState(false);
+
+  const handleModeSwitch = () => {
+    if (isLocalMode) {
+      // Switch to cloud mode
+      localStorage.removeItem('taskmark_local_mode');
+      window.location.reload();
+    } else {
+      // Switch to local mode
+      localStorage.setItem('taskmark_local_mode', 'true');
+      window.location.reload();
+    }
+  };
+
+  if (!isLocalMode && !user) return null;
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50">
+      <div className="relative">
+        <button
+          onClick={() => setShowModeSwitch(!showModeSwitch)}
+          className="flex items-center space-x-2 px-3 py-2 rounded-md bg-[var(--bg-secondary)] text-[var(--text-primary)] hover:bg-[var(--hover)] transition-colors"
+        >
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: isLocalMode ? '#f59e0b' : '#10b981' }} />
+          <span className="text-sm font-medium">
+            {isLocalMode ? 'Local Mode' : 'Cloud Mode'}
+          </span>
+        </button>
+
+        {showModeSwitch && (
+          <div className="absolute bottom-full right-0 mb-2 w-64 bg-[var(--bg-secondary)] rounded-md shadow-lg p-4">
+            <div className="text-sm text-[var(--text-secondary)] mb-3">
+              {isLocalMode ? (
+                <>
+                  <p className="font-medium text-[var(--text-primary)] mb-2">Local Mode Active</p>
+                  <p>Your notes are stored only on this device.</p>
+                </>
+              ) : (
+                <>
+                  <p className="font-medium text-[var(--text-primary)] mb-2">Cloud Mode Active</p>
+                  <p>Your notes are synced with the cloud.</p>
+                </>
+              )}
+            </div>
+            <button
+              onClick={handleModeSwitch}
+              className="w-full px-3 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--accent)] hover:bg-[var(--accent-light)] rounded-md transition-colors"
+            >
+              Switch to {isLocalMode ? 'Cloud' : 'Local'} Mode
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -126,83 +203,96 @@ function App() {
 
   return (
     <NotesProvider>
-      <div className="flex flex-col h-screen">
-        <header className="bg-[var(--bg-secondary)] border-b border-[var(--border)] p-[14px] mx-4 mt-4 flex items-center rounded-lg">
-          <div className="flex items-center">
-            <h1 className="text-lg font-bold text-[var(--text-primary)] ml-2 font-mono">&lt;taskmark&gt;</h1>
-          </div>
-          
-          <div className="flex-1"></div>
-          
-          <div className="flex items-center space-x-2">
-            <SearchBar
-              isSearchOpen={isSearchOpen}
-              setIsSearchOpen={setIsSearchOpen}
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              onSearchSelect={handleSearchSelect}
-              notesAppRef={notesAppRef}
-            />
-            
-            <button
-              onClick={() => setIsRecycleBinOpen(true)}
-              className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
-              aria-label="Recycle bin"
-              title="Recycle Bin"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
-            
-            <button
-              onClick={cycleTheme}
-              className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
-              aria-label="Toggle theme"
-              title="Toggle Theme"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-              </svg>
-            </button>
-            
-            <button
-              onClick={() => notesAppRef.current?.triggerAddNote()}
-              className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
-              aria-label="Add a new note"
-              title="Add a new note (Alt+N)"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-              </svg>
-            </button>
-            
-            <button
-              onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-              className="sm:hidden p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
-              aria-label="Toggle sidebar"
-              aria-expanded={isMobileSidebarOpen}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
-              </svg>
-            </button>
-          </div>
-        </header>
-        <main className="flex-1 w-full overflow-hidden bg-[var(--bg-primary)] mt-0 ml-0 mr-4 mb-0">
-          <NotesApp 
-            ref={notesAppRef} 
-            isMobileSidebarOpen={isMobileSidebarOpen} 
-            setIsMobileSidebarOpen={setIsMobileSidebarOpen}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-          />
-        </main>
-        <NotificationWrapper />
-        <RecycleBinModal isOpen={isRecycleBinOpen} onClose={() => setIsRecycleBinOpen(false)} />
-        <Analytics />
-        <SpeedInsights />
-      </div>
+      <Routes>
+        <Route path="/auth/login" element={<Login />} />
+        <Route path="/auth/signup" element={<Signup />} />
+        <Route path="/auth/reset-password" element={<ResetPassword />} />
+        <Route
+          path="/"
+          element={
+            <PrivateRoute>
+              <div className="flex flex-col h-screen">
+                <header className="bg-[var(--bg-secondary)] border-b border-[var(--border)] p-[14px] mx-4 mt-4 flex items-center rounded-lg">
+                  <div className="flex items-center">
+                    <h1 className="text-lg font-bold text-[var(--text-primary)] ml-2 font-mono">&lt;taskmark&gt;</h1>
+                  </div>
+                  
+                  <div className="flex-1"></div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <SearchBar
+                      isSearchOpen={isSearchOpen}
+                      setIsSearchOpen={setIsSearchOpen}
+                      searchQuery={searchQuery}
+                      setSearchQuery={setSearchQuery}
+                      onSearchSelect={handleSearchSelect}
+                      notesAppRef={notesAppRef}
+                    />
+                    
+                    <button
+                      onClick={() => setIsRecycleBinOpen(true)}
+                      className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
+                      aria-label="Recycle bin"
+                      title="Recycle Bin"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                    
+                    <button
+                      onClick={cycleTheme}
+                      className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
+                      aria-label="Toggle theme"
+                      title="Toggle Theme"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                      </svg>
+                    </button>
+                    
+                    <button
+                      onClick={() => notesAppRef.current?.triggerAddNote()}
+                      className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
+                      aria-label="Add a new note"
+                      title="Add a new note (Alt+N)"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                      </svg>
+                    </button>
+                    
+                    <button
+                      onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+                      className="sm:hidden p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
+                      aria-label="Toggle sidebar"
+                      aria-expanded={isMobileSidebarOpen}
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </header>
+                <main className="flex-1 w-full overflow-hidden bg-[var(--bg-primary)] mt-0 ml-0 mr-4 mb-0">
+                  <NotesApp 
+                    ref={notesAppRef} 
+                    isMobileSidebarOpen={isMobileSidebarOpen} 
+                    setIsMobileSidebarOpen={setIsMobileSidebarOpen}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                  />
+                </main>
+                <NotificationWrapper />
+                <RecycleBinModal isOpen={isRecycleBinOpen} onClose={() => setIsRecycleBinOpen(false)} />
+                <Analytics />
+                <SpeedInsights />
+                <ModeIndicator />
+              </div>
+            </PrivateRoute>
+          }
+        />
+      </Routes>
     </NotesProvider>
   );
 }
