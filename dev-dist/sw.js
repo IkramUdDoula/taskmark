@@ -67,8 +67,9 @@ if (!self.define) {
     });
   };
 }
-define(['./workbox-ce4f0d5f'], (function (workbox) { 'use strict';
+define(['./workbox-147b8f7b'], (function (workbox) { 'use strict';
 
+  workbox.enable();
   self.skipWaiting();
   workbox.clientsClaim();
 
@@ -78,12 +79,13 @@ define(['./workbox-ce4f0d5f'], (function (workbox) { 'use strict';
    * See https://goo.gl/S9QRab
    */
   workbox.precacheAndRoute([{
-    "url": "index.html",
-    "revision": "0.03c73rj8bs8"
+    "url": "/offline.html",
+    "revision": "0.ispodmvttm8"
   }], {});
   workbox.cleanupOutdatedCaches();
-  workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
-    allowlist: [/^\/$/]
+  workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("/offline.html"), {
+    allowlist: [/^\/$/],
+    denylist: [/\.(?:png|jpg|jpeg|svg|gif)$/]
   }));
   workbox.registerRoute(/^https:\/\/fonts\.googleapis\.com\/.*/i, new workbox.CacheFirst({
     "cacheName": "google-fonts-cache",
@@ -94,5 +96,14 @@ define(['./workbox-ce4f0d5f'], (function (workbox) { 'use strict';
       statuses: [0, 200]
     })]
   }), 'GET');
+  workbox.registerRoute(/^https:\/\/api\.your-backend\.com\/.*/i, new workbox.NetworkFirst({
+    "cacheName": "api-cache",
+    "networkTimeoutSeconds": 10,
+    plugins: [new workbox.ExpirationPlugin({
+      maxEntries: 100,
+      maxAgeSeconds: 86400
+    })]
+  }), 'GET');
 
 }));
+//# sourceMappingURL=sw.js.map

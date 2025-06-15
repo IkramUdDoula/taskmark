@@ -8,7 +8,8 @@ taskmark/
 │   ├── components/         # Reusable UI components
 │   │   ├── NoteEditor.jsx  # Note editing component
 │   │   ├── NotesSidebar.jsx # Sidebar component
-│   │   └── SearchBar.jsx   # Search component
+│   │   ├── SearchBar.jsx   # Search component
+│   │   └── PWAUpdatePrompt.jsx # PWA update prompt component
 │   ├── hooks/             # Custom React hooks
 │   │   ├── useTheme.js    # Theme management hook
 │   │   ├── useKeyboardShortcuts.js # Keyboard shortcuts hook
@@ -18,6 +19,8 @@ taskmark/
 │   ├── RecycleBinModal.jsx # Recycle bin modal component
 │   ├── Notification.jsx   # Notification component
 │   └── index.css          # Global styles and theme definitions
+├── public/
+│   └── offline.html       # Offline fallback page for PWA
 ```
 
 ## Core Components
@@ -96,6 +99,39 @@ Features:
 - Customizable duration
 - Clean animations
 - Theme-aware styling
+
+## Progressive Web App (PWA) Implementation
+
+Taskmark is built as a Progressive Web App (PWA) to provide an enhanced, app-like experience to users. This includes offline capabilities, installability, and seamless updates.
+
+### Workbox Configuration
+
+The PWA functionality is primarily managed through Workbox, configured via `vite.config.js` using `vite-plugin-pwa`.
+
+Key configurations include:
+- `globPatterns`: Defines which files are precached (JS, CSS, HTML, images).
+- `runtimeCaching`: Specifies caching strategies for external resources like Google Fonts (`CacheFirst`) and API calls (`NetworkFirst`).
+- `cleanupOutdatedCaches`: Ensures older service worker caches are removed.
+- `navigationPreload`: Enables navigation preloading for faster page loads.
+- `navigateFallback`: Sets `/offline.html` as the fallback page for navigation requests when offline.
+- `navigateFallbackAllowlist`: Allows fallback for all routes except internal Workbox routes (`/\/__`).
+- `navigateFallbackDenylist`: Excludes specific file types (images) from navigation fallback.
+
+### Service Worker (`src/sw.js`)
+
+The service worker handles caching and offline strategies. It uses `workbox.precacheAndRoute` to precache essential assets and `workbox.registerRoute` for runtime caching strategies.
+
+### PWA Update Prompt (`src/components/PWAUpdatePrompt.jsx`)
+
+This component leverages `virtual:pwa-register` to manage service worker lifecycle events, including:
+- **Update Notification**: Prompts the user when new content is available and allows them to refresh the app.
+- **Offline Ready**: Logs when the app is ready for offline use.
+- **Install Prompt**: Detects the `beforeinstallprompt` event and presents a custom UI for installing the PWA to the user's home screen.
+- **Installation Confirmation**: Logs when the PWA has been successfully installed.
+
+### Offline Page (`public/offline.html`)
+
+A custom `offline.html` page is served when the user is offline and attempts to navigate to a page not available in the cache. It provides a user-friendly message and an option to reload when back online.
 
 ## Custom Hooks
 
@@ -186,6 +222,5 @@ Potential areas for enhancement:
 - Collaborative editing
 - Unit testing
 - Performance optimization
-- Offline support
 - Markdown support
 - Note sharing 

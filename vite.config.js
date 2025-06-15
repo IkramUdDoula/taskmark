@@ -18,6 +18,16 @@ export default defineConfig({
         start_url: '/',
         scope: '/',
         orientation: 'portrait',
+        categories: ['productivity', 'utilities'],
+        shortcuts: [
+          {
+            name: 'New Note',
+            short_name: 'New',
+            description: 'Create a new note',
+            url: '/new',
+            icons: [{ "src": "/icons/add-96x96.png", "sizes": "96x96" }]
+          }
+        ],
         icons: [
           {
             src: '/icons/icon-192x192.png',
@@ -72,8 +82,26 @@ export default defineConfig({
                 statuses: [0, 200]
               }
             }
+          },
+          {
+            urlPattern: /^https:\/\/api\.your-backend\.com\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              networkTimeoutSeconds: 10,
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 // 1 day
+              }
+            }
           }
-        ]
+        ],
+        cleanupOutdatedCaches: true,
+        sourcemap: true,
+        navigationPreload: true,
+        navigateFallback: '/offline.html',
+        navigateFallbackAllowlist: [/^(?!\/__).*/],
+        navigateFallbackDenylist: [/\.(?:png|jpg|jpeg|svg|gif)$/]
       },
       devOptions: {
         enabled: true,
@@ -81,6 +109,16 @@ export default defineConfig({
       }
     })
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000
+  },
   server: {
     fs: {
       // Allow serving files from one level up to the project root

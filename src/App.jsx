@@ -5,6 +5,7 @@ import RecycleBinModal from './RecycleBinModal';
 import SearchBar from './components/SearchBar';
 import NotesSidebar from './components/NotesSidebar';
 import NoteEditor from './components/NoteEditor';
+import PWAUpdatePrompt from './components/PWAUpdatePrompt';
 import { useTheme } from './hooks/useTheme';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useNoteManagement } from './hooks/useNoteManagement';
@@ -200,6 +201,7 @@ function App() {
         </main>
         <NotificationWrapper />
         <RecycleBinModal isOpen={isRecycleBinOpen} onClose={() => setIsRecycleBinOpen(false)} />
+        <PWAUpdatePrompt />
         <Analytics />
         <SpeedInsights />
       </div>
