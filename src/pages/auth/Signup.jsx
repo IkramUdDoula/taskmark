@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLocalMode } from '../../hooks/useLocalMode';
 
 export default function Signup() {
   const [email, setEmail] = useState('');
@@ -11,6 +12,7 @@ export default function Signup() {
   const [showLocalModeWarning, setShowLocalModeWarning] = useState(false);
   const navigate = useNavigate();
   const { signUp } = useAuth();
+  const { setLocalMode } = useLocalMode();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,7 +40,7 @@ export default function Signup() {
   };
 
   const confirmLocalMode = () => {
-    localStorage.setItem('taskmark_local_mode', 'true');
+    setLocalMode(true);
     navigate('/');
   };
 
@@ -142,7 +144,7 @@ export default function Signup() {
               className="w-full flex justify-center py-2 px-4 border border-[var(--border)] rounded-md shadow-sm text-sm font-medium text-[var(--text-primary)] bg-[var(--bg-secondary)] hover:bg-[var(--hover)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent)]"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
               Local Mode
             </button>

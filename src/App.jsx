@@ -8,6 +8,7 @@ import SearchBar from './components/SearchBar';
 import NotesSidebar from './components/NotesSidebar';
 import NoteEditor from './components/NoteEditor';
 import { useTheme } from './hooks/useTheme';
+import { useLocalMode } from './hooks/useLocalMode';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useNoteManagement } from './hooks/useNoteManagement';
 import { Analytics } from '@vercel/analytics/react';
@@ -94,7 +95,7 @@ const NotesApp = React.forwardRef(({ isMobileSidebarOpen, setIsMobileSidebarOpen
 function PrivateRoute({ children }) {
   const { user } = useAuth();
   const location = useLocation();
-  const isLocalMode = localStorage.getItem('taskmark_local_mode') === 'true';
+  const { isLocalMode } = useLocalMode();
 
   if (!user && !isLocalMode) {
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
@@ -112,7 +113,7 @@ function App() {
   const notesAppRef = useRef(null);
   const modeSwitchRef = useRef(null);
   const { cycleTheme } = useTheme();
-  const isLocalMode = localStorage.getItem('taskmark_local_mode') === 'true';
+  const { isLocalMode, setLocalMode } = useLocalMode();
   const { user } = useAuth();
 
   // Add click outside handler
@@ -132,15 +133,8 @@ function App() {
   }, [showModeSwitch]);
 
   const handleModeSwitch = () => {
-    if (isLocalMode) {
-      // Switch to cloud mode
-      localStorage.removeItem('taskmark_local_mode');
-      window.location.reload();
-    } else {
-      // Switch to local mode
-      localStorage.setItem('taskmark_local_mode', 'true');
-      window.location.reload();
-    }
+    setLocalMode(!isLocalMode);
+    window.location.reload();
   };
 
   useKeyboardShortcuts({

@@ -1,4 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { supabase } from './services/supabase';
+import { useAuth } from './contexts/AuthContext';
+import { useLocalMode } from './hooks/useLocalMode';
 
 // IndexedDB helper
 const DB_NAME = 'taskmark-db';
@@ -102,36 +105,108 @@ export function NotesProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [lastDeletedNote, setLastDeletedNote] = useState(null);
   const [deletedNotes, setDeletedNotes] = useState([]);
+  const { user } = useAuth();
+  const { isLocalMode } = useLocalMode();
 
+  // Load notes based on mode
   useEffect(() => {
-    getAllNotes().then((n) => {
-      setNotes(n);
+    if (isLocalMode) {
+      // Load from IndexedDB in local mode
+      getAllNotes().then((n) => {
+        setNotes(n);
+        setLoading(false);
+      }).catch(error => {
+        console.error('Error loading notes:', error);
+        setNotes([]);
+        setLoading(false);
+      });
+    } else if (user) {
+      // Load from Supabase in cloud mode
+      loadNotesFromSupabase();
+    }
+  }, [isLocalMode, user]);
+
+  // Set up real-time subscription for cloud mode
+  useEffect(() => {
+    if (!isLocalMode && user) {
+      const subscription = supabase
+        .channel('notes_changes')
+        .on('postgres_changes', 
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'notes',
+            filter: `user_id=eq.${user.id}`
+          }, 
+          (payload) => {
+            console.log('Real-time update:', payload);
+            handleRealtimeUpdate(payload);
+          }
+        )
+        .subscribe();
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
+  }, [isLocalMode, user]);
+
+  const loadNotesFromSupabase = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('notes')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('updated', { ascending: false });
+
+      if (error) throw error;
+      setNotes(data || []);
       setLoading(false);
-    }).catch(error => {
-      console.error('Error loading notes:', error);
+    } catch (error) {
+      console.error('Error loading notes from Supabase:', error);
       setNotes([]);
       setLoading(false);
-    });
-  }, []);
+    }
+  };
+
+  const handleRealtimeUpdate = (payload) => {
+    if (payload.eventType === 'INSERT') {
+      setNotes(prev => [payload.new, ...prev]);
+    } else if (payload.eventType === 'UPDATE') {
+      setNotes(prev => prev.map(note => 
+        note.id === payload.new.id ? payload.new : note
+      ));
+    } else if (payload.eventType === 'DELETE') {
+      setNotes(prev => prev.filter(note => note.id !== payload.old.id));
+    }
+  };
 
   const addOrUpdateNote = async (note) => {
     try {
-      // For backward compatibility: always save content and checklist fields
-      let patched = { ...note };
-      if (note.blocks) {
-        patched.content = note.blocks.filter(b => b.type === 'text').map(b => b.text).join('\n\n');
-        patched.checklist = note.blocks.find(b => b.type === 'checklist')?.items || [];
+      if (isLocalMode) {
+        // Save to IndexedDB in local mode
+        await saveNote(note);
+        setNotes((prev) => {
+          const idx = prev.findIndex((n) => n.id === note.id);
+          if (idx >= 0) {
+            const newNotes = [...prev];
+            newNotes[idx] = note;
+            return newNotes;
+          }
+          return [...prev, note];
+        });
+      } else if (user) {
+        // Save to Supabase in cloud mode
+        const { error } = await supabase
+          .from('notes')
+          .upsert({
+            ...note,
+            user_id: user.id,
+            updated: new Date().toISOString()
+          });
+
+        if (error) throw error;
       }
-      await saveNote(patched);
-      setNotes((prev) => {
-        const idx = prev.findIndex((n) => n.id === note.id);
-        if (idx >= 0) {
-          const newNotes = [...prev];
-          newNotes[idx] = note;
-          return newNotes;
-        }
-        return [...prev, note];
-      });
     } catch (error) {
       console.error('Error in addOrUpdateNote:', error);
       throw error;
@@ -144,7 +219,19 @@ export function NotesProvider({ children }) {
       if (noteToDelete) {
         setLastDeletedNote(noteToDelete);
         setDeletedNotes(prev => [...prev, { ...noteToDelete, deletedAt: new Date().toISOString() }]);
-        await deleteNote(id);
+        
+        if (isLocalMode) {
+          await deleteNote(id);
+        } else if (user) {
+          const { error } = await supabase
+            .from('notes')
+            .delete()
+            .eq('id', id)
+            .eq('user_id', user.id);
+
+          if (error) throw error;
+        }
+        
         setNotes((prev) => prev.filter((n) => n.id !== id));
       }
     } catch (error) {
