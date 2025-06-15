@@ -1,5 +1,8 @@
 # Taskmark
 
+![Taskmark](https://github.com/user-attachments/assets/1fdcbadb-1301-4b02-a68c-03786c7d954e)
+
+
 A modern, keyboard-driven note-taking application built with React. Taskmark combines the simplicity of plain text with powerful features like tags, search, and a recycle bin.
 
 ## Features
