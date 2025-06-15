@@ -48,26 +48,39 @@ const PWAUpdatePrompt = () => {
   if (!showInstallPrompt) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg z-50">
+    <div className="fixed bottom-4 right-4 p-4 rounded-lg shadow-lg z-50"
+      style={{
+        backgroundColor: 'var(--bg-secondary)',
+        color: 'var(--text-primary)'
+      }}
+    >
       <div className="flex items-center space-x-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <h3 className="text-lg font-semibold">
             Install TaskMark
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-300">
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
             Install this app on your device for quick and easy access
           </p>
         </div>
         <div className="flex space-x-2">
           <button
             onClick={handleInstall}
-            className="px-4 py-2 bg-[#1A3636] text-white rounded-md hover:bg-opacity-90 transition-colors"
+            className="px-4 py-2 rounded-md transition-colors"
+            style={{
+              backgroundColor: 'var(--accent)',
+              color: 'var(--bg-primary)'
+            }}
           >
             Install
           </button>
           <button
             onClick={() => setShowInstallPrompt(false)}
-            className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+            className="px-4 py-2 rounded-md transition-colors"
+            style={{
+              color: 'var(--text-secondary)',
+              backgroundColor: 'var(--bg-tertiary)'
+            }}
           >
             Later
           </button>

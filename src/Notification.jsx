@@ -16,7 +16,7 @@ export default function Notification({ message, onUndo, duration = 5000 }) {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg shadow-lg p-4 min-w-[300px] max-w-[400px] z-50">
+    <div className="fixed top-4 right-4 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg shadow-lg p-4 min-w-[300px] max-w-[400px] z-50">
       <div className="flex items-center">
         <p className="text-[var(--text-primary)] flex-1">{message}</p>
         <div className="h-6 w-px bg-[var(--border)] mx-3" />

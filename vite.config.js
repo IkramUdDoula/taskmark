@@ -47,23 +47,6 @@ export default defineConfig({
             type: 'image/png',
             purpose: 'maskable'
           }
-        ],
-        screenshots: [
-          {
-            src: '/icons/splash-640x1136.png',
-            sizes: '640x1136',
-            type: 'image/png'
-          },
-          {
-            src: '/icons/splash-750x1334.png',
-            sizes: '750x1334',
-            type: 'image/png'
-          },
-          {
-            src: '/icons/splash-1242x2208.png',
-            sizes: '1242x2208',
-            type: 'image/png'
-          }
         ]
       },
       workbox: {

@@ -128,7 +128,21 @@ function App() {
   return (
     <NotesProvider>
       <div className="flex flex-col h-screen">
-        <header className="bg-[var(--bg-secondary)] border-b border-[var(--border)] p-[14px] mx-4 mt-4 flex items-center rounded-lg">
+        <main className="flex-1 w-full overflow-hidden bg-[var(--bg-primary)]">
+          <NotesApp 
+            ref={notesAppRef} 
+            isMobileSidebarOpen={isMobileSidebarOpen} 
+            setIsMobileSidebarOpen={setIsMobileSidebarOpen}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+          />
+        </main>
+        <NotificationWrapper />
+        <RecycleBinModal isOpen={isRecycleBinOpen} onClose={() => setIsRecycleBinOpen(false)} />
+        {/* <PWAUpdatePrompt /> */}
+        <Analytics />
+        <SpeedInsights />
+        <footer className="bg-[var(--bg-secondary)] border-t border-[var(--border)] p-3 mx-4 mb-4 mt-2 flex items-center rounded-lg">
           <div className="flex items-center">
             <h1 className="text-lg font-bold text-[var(--text-primary)] ml-2 font-mono">&lt;taskmark&gt;</h1>
           </div>
@@ -136,6 +150,16 @@ function App() {
           <div className="flex-1"></div>
           
           <div className="flex items-center space-x-2">
+            <button
+              onClick={() => notesAppRef.current?.triggerAddNote()}
+              className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
+              aria-label="Add a new note"
+              title="Add a new note (Alt+N)"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+            </button>
             <SearchBar
               isSearchOpen={isSearchOpen}
               setIsSearchOpen={setIsSearchOpen}
@@ -168,17 +192,6 @@ function App() {
             </button>
             
             <button
-              onClick={() => notesAppRef.current?.triggerAddNote()}
-              className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
-              aria-label="Add a new note"
-              title="Add a new note (Alt+N)"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-              </svg>
-            </button>
-            
-            <button
               onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
               className="sm:hidden p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
               aria-label="Toggle sidebar"
@@ -189,21 +202,7 @@ function App() {
               </svg>
             </button>
           </div>
-        </header>
-        <main className="flex-1 w-full overflow-hidden bg-[var(--bg-primary)] mt-0 ml-0 mr-4 mb-0">
-          <NotesApp 
-            ref={notesAppRef} 
-            isMobileSidebarOpen={isMobileSidebarOpen} 
-            setIsMobileSidebarOpen={setIsMobileSidebarOpen}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-          />
-        </main>
-        <NotificationWrapper />
-        <RecycleBinModal isOpen={isRecycleBinOpen} onClose={() => setIsRecycleBinOpen(false)} />
-        <PWAUpdatePrompt />
-        <Analytics />
-        <SpeedInsights />
+        </footer>
       </div>
     </NotesProvider>
   );
