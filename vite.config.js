@@ -99,9 +99,9 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         sourcemap: true,
         navigationPreload: true,
-        navigationFallback: '/offline.html',
-        navigationFallbackAllowlist: [/^(?!\/__).*/],
-        navigationFallbackDenylist: [/\.(?:png|jpg|jpeg|svg|gif)$/]
+        navigateFallback: '/offline.html',
+        navigateFallbackAllowlist: [/^(?!\/__).*/],
+        navigateFallbackDenylist: [/\.(?:png|jpg|jpeg|svg|gif)$/]
       },
       devOptions: {
         enabled: true,

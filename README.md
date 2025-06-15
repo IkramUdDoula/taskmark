@@ -64,6 +64,40 @@ A modern, keyboard-driven note-taking application built with React. Taskmark com
 - Modular component architecture
 - Clean and maintainable codebase
 
+## Progressive Web App (PWA) Features
+- **Offline Support**: Access your notes even without an internet connection.
+- **Installable**: Add Taskmark to your home screen on mobile and desktop for a native app-like experience.
+- **Update Prompt**: Get notified when a new version of the app is available and easily update.
+
+## Installation
+
+To get a local copy up and running, follow these simple steps:
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-username/taskmark.git
+    cd taskmark
+    ```
+2.  **Install NPM packages:**
+    ```bash
+    npm install
+    ```
+
+## Usage
+
+To run the application in development mode:
+
+```bash
+npm run dev
+```
+This will start the development server, and you can view the application in your browser at `http://localhost:5173`.
+
+To build the production-ready application:
+
+```bash
+npm run build
+```
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
