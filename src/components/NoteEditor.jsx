@@ -122,7 +122,7 @@ export default function NoteEditor({ note, onSave, onDelete }) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-none sm:rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-lg overflow-hidden">
       <div className="shrink-0 border-b border-[var(--border)] bg-[var(--bg-tertiary)]">
         <input
           type="text"

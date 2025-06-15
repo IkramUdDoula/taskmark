@@ -60,7 +60,7 @@ const NotesApp = React.forwardRef(({ isMobileSidebarOpen, setIsMobileSidebarOpen
   }));
 
   return (
-    <div className="flex flex-col sm:flex-row h-[calc(100vh-56px)] sm:h-[calc(100vh-72px)] gap-0 sm:gap-2 bg-[var(--bg-primary)] font-mono">
+    <div className="flex flex-col sm:flex-row h-full sm:h-full gap-0 sm:gap-2 bg-[var(--bg-primary)] font-mono">
       <NotesSidebar
         notes={sortedNotes}
         selectedId={selectedId}
@@ -142,7 +142,7 @@ function App() {
         {/* <PWAUpdatePrompt /> */}
         <Analytics />
         <SpeedInsights />
-        <footer className="bg-[var(--bg-secondary)] border-t border-[var(--border)] p-3 mx-4 mb-4 mt-2 flex items-center rounded-lg">
+        <footer className="bg-[var(--bg-secondary)] border-t border-[var(--border)] p-3 mx-4 mb-4 flex items-center rounded-lg">
           <div className="flex items-center">
             <h1 className="text-lg font-bold text-[var(--text-primary)] ml-2 font-mono">&lt;taskmark&gt;</h1>
           </div>
