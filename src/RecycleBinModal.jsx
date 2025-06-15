@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNotes } from './NotesContext';
+import Modal from './components/Modal';
 
 function formatDate(dateString) {
   const d = new Date(dateString);
@@ -16,6 +17,12 @@ export default function RecycleBinModal({ isOpen, onClose }) {
   const { deletedNotes, restoreNote, permanentlyDeleteNote } = useNotes();
 
   if (!isOpen) return null;
+
+  const handleRestoreAll = () => {
+    deletedNotes.forEach(note => {
+      restoreNote(note.id);
+    });
+  };
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -79,13 +86,14 @@ export default function RecycleBinModal({ isOpen, onClose }) {
             </div>
           </div>
           <div className="bg-[var(--bg-tertiary)] px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-            <button
-              type="button"
-              className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-[var(--accent)] text-base font-medium text-[var(--bg-primary)] hover:bg-[var(--accent-light)] focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
-              onClick={onClose}
-            >
+            {deletedNotes.length > 0 && (
+              <Modal.PrimaryButton onClick={handleRestoreAll}>
+                Restore All
+              </Modal.PrimaryButton>
+            )}
+            <Modal.SecondaryButton onClick={onClose}>
               Close
-            </button>
+            </Modal.SecondaryButton>
           </div>
         </div>
       </div>

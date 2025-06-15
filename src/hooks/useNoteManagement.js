@@ -27,10 +27,12 @@ export function useNoteManagement() {
     const newNote = {
       id: now.getTime().toString(),
       title: '',
-      blocks: [{ type: 'text', text: '' }], // default block
+      blocks: [{ type: 'text', text: '' }],
       created: now.toISOString(),
       updated: now.toISOString(),
-      tags: [], // Initialize empty tags array
+      tags: [],
+      content: '', // For backward compatibility
+      checklist: [] // For backward compatibility
     };
     addOrUpdateNote(newNote);
     setPendingNewId(newNote.id);

@@ -15,6 +15,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 import Login from './pages/auth/Login';
 import Signup from './pages/auth/Signup';
 import ResetPassword from './pages/auth/ResetPassword';
+import Modal from './components/Modal';
 import './index.css';
 
 function formatDate(dateString) {
@@ -102,10 +103,33 @@ function PrivateRoute({ children }) {
   return children;
 }
 
-function ModeIndicator() {
+function App() {
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);
+  const [showModeSwitch, setShowModeSwitch] = useState(false);
+  const notesAppRef = useRef(null);
+  const modeSwitchRef = useRef(null);
+  const { cycleTheme } = useTheme();
   const isLocalMode = localStorage.getItem('taskmark_local_mode') === 'true';
   const { user } = useAuth();
-  const [showModeSwitch, setShowModeSwitch] = useState(false);
+
+  // Add click outside handler
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (modeSwitchRef.current && !modeSwitchRef.current.contains(event.target)) {
+        setShowModeSwitch(false);
+      }
+    }
+
+    if (showModeSwitch) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showModeSwitch]);
 
   const handleModeSwitch = () => {
     if (isLocalMode) {
@@ -118,57 +142,6 @@ function ModeIndicator() {
       window.location.reload();
     }
   };
-
-  if (!isLocalMode && !user) return null;
-
-  return (
-    <div className="fixed bottom-4 right-4 z-50">
-      <div className="relative">
-        <button
-          onClick={() => setShowModeSwitch(!showModeSwitch)}
-          className="flex items-center space-x-2 px-3 py-2 rounded-md bg-[var(--bg-secondary)] text-[var(--text-primary)] hover:bg-[var(--hover)] transition-colors"
-        >
-          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: isLocalMode ? '#f59e0b' : '#10b981' }} />
-          <span className="text-sm font-medium">
-            {isLocalMode ? 'Local Mode' : 'Cloud Mode'}
-          </span>
-        </button>
-
-        {showModeSwitch && (
-          <div className="absolute bottom-full right-0 mb-2 w-64 bg-[var(--bg-secondary)] rounded-md shadow-lg p-4">
-            <div className="text-sm text-[var(--text-secondary)] mb-3">
-              {isLocalMode ? (
-                <>
-                  <p className="font-medium text-[var(--text-primary)] mb-2">Local Mode Active</p>
-                  <p>Your notes are stored only on this device.</p>
-                </>
-              ) : (
-                <>
-                  <p className="font-medium text-[var(--text-primary)] mb-2">Cloud Mode Active</p>
-                  <p>Your notes are synced with the cloud.</p>
-                </>
-              )}
-            </div>
-            <button
-              onClick={handleModeSwitch}
-              className="w-full px-3 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--accent)] hover:bg-[var(--accent-light)] rounded-md transition-colors"
-            >
-              Switch to {isLocalMode ? 'Cloud' : 'Local'} Mode
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function App() {
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);
-  const notesAppRef = useRef(null);
-  const { cycleTheme } = useTheme();
 
   useKeyboardShortcuts({
     onNewNote: () => notesAppRef.current?.triggerAddNote(),
@@ -186,6 +159,9 @@ function App() {
       }
       if (isRecycleBinOpen) {
         setIsRecycleBinOpen(false);
+      }
+      if (showModeSwitch) {
+        setShowModeSwitch(false);
       }
     },
     isSearchOpen,
@@ -228,6 +204,64 @@ function App() {
                       onSearchSelect={handleSearchSelect}
                       notesAppRef={notesAppRef}
                     />
+                    
+                    {/* Mode Toggle Button */}
+                    {(isLocalMode || user) && (
+                      <div className="relative" ref={modeSwitchRef}>
+                        <button
+                          onClick={() => setShowModeSwitch(!showModeSwitch)}
+                          className="p-2 rounded-full text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
+                          aria-label={isLocalMode ? "Local Mode" : "Cloud Mode"}
+                          title={isLocalMode ? "Local Mode" : "Cloud Mode"}
+                        >
+                          {isLocalMode ? (
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                          ) : (
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+                            </svg>
+                          )}
+                        </button>
+
+                        {showModeSwitch && (
+                          <Modal
+                            isOpen={showModeSwitch}
+                            onClose={() => setShowModeSwitch(false)}
+                            title={isLocalMode ? "Local Mode" : "Cloud Mode"}
+                            footer={
+                              <div className="flex justify-end space-x-3">
+                                <Modal.SecondaryButton onClick={() => setShowModeSwitch(false)}>
+                                  Close
+                                </Modal.SecondaryButton>
+                                <Modal.PrimaryButton
+                                  onClick={() => {
+                                    handleModeSwitch();
+                                    setShowModeSwitch(false);
+                                  }}
+                                >
+                                  {isLocalMode ? "Switch to Cloud Mode" : "Switch to Local Mode"}
+                                </Modal.PrimaryButton>
+                              </div>
+                            }
+                          >
+                            <div className="mt-2">
+                              <p className="text-[var(--text-primary)]">
+                                {isLocalMode
+                                  ? "You are currently in Local Mode. Your notes are stored only on this device."
+                                  : "You are currently in Cloud Mode. Your notes are synced across all your devices."}
+                              </p>
+                              <p className="text-[var(--text-secondary)] mt-2">
+                                {isLocalMode
+                                  ? "Switch to Cloud Mode to sync your notes across devices and access them from anywhere."
+                                  : "Switch to Local Mode to store your notes only on this device."}
+                              </p>
+                            </div>
+                          </Modal>
+                        )}
+                      </div>
+                    )}
                     
                     <button
                       onClick={() => setIsRecycleBinOpen(true)}
@@ -287,7 +321,6 @@ function App() {
                 <RecycleBinModal isOpen={isRecycleBinOpen} onClose={() => setIsRecycleBinOpen(false)} />
                 <Analytics />
                 <SpeedInsights />
-                <ModeIndicator />
               </div>
             </PrivateRoute>
           }
