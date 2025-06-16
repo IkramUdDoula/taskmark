@@ -37,7 +37,64 @@ export default function BlockNoteEditor({ initialContent, onChange, theme = "lig
   }, [initialContent, editor]);
 
   return (
-    <div className={`blocknote-editor blocknote-theme-${theme}`}>
+    <div className={`blocknote-editor blocknote-theme-${theme} h-full`}>
+      <style jsx global>{`
+        .blocknote-editor {
+          background: transparent !important;
+        }
+        .blocknote-editor .bn-container {
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+        }
+        .blocknote-editor .bn-editor {
+          background: transparent !important;
+          color: var(--text-primary) !important;
+        }
+        .blocknote-editor .bn-toolbar {
+          background: var(--bg-tertiary) !important;
+          border-color: var(--border) !important;
+          color: var(--text-primary) !important;
+        }
+        .blocknote-editor .bn-toolbar button {
+          color: var(--text-primary) !important;
+        }
+        .blocknote-editor .bn-toolbar button:hover {
+          background: var(--hover) !important;
+        }
+        .blocknote-editor .bn-toolbar button[data-active="true"] {
+          background: var(--hover) !important;
+        }
+        .blocknote-editor .bn-toolbar .bn-toolbar-divider {
+          border-color: var(--border) !important;
+        }
+        .blocknote-editor .bn-toolbar .bn-toolbar-dropdown {
+          background: var(--bg-tertiary) !important;
+          border-color: var(--border) !important;
+        }
+        .blocknote-editor .bn-toolbar .bn-toolbar-dropdown button {
+          color: var(--text-primary) !important;
+        }
+        .blocknote-editor .bn-toolbar .bn-toolbar-dropdown button:hover {
+          background: var(--hover) !important;
+        }
+        .blocknote-editor .bn-toolbar .bn-toolbar-dropdown button[data-active="true"] {
+          background: var(--hover) !important;
+        }
+        .blocknote-editor .bn-toolbar .bn-toolbar-dropdown .bn-toolbar-dropdown-content {
+          background: var(--bg-tertiary) !important;
+          border-color: var(--border) !important;
+        }
+        .blocknote-editor .bn-toolbar .bn-toolbar-dropdown .bn-toolbar-dropdown-content button {
+          color: var(--text-primary) !important;
+        }
+        .blocknote-editor .bn-toolbar .bn-toolbar-dropdown .bn-toolbar-dropdown-content button:hover {
+          background: var(--hover) !important;
+        }
+        .blocknote-editor .bn-toolbar .bn-toolbar-dropdown .bn-toolbar-dropdown-content button[data-active="true"] {
+          background: var(--hover) !important;
+        }
+      `}</style>
       <BlockNoteView editor={editor} onChange={onChange} />
     </div>
   );
