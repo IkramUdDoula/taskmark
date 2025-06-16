@@ -134,7 +134,7 @@ export default function NoteEditor({ note, onSave, onDelete }) {
         />
       </div>
       
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 flex flex-col">
         <BlockNoteEditor
           initialContent={blocks}
           onChange={(newBlocks) => {
@@ -142,6 +142,7 @@ export default function NoteEditor({ note, onSave, onDelete }) {
             handleSave(title, newBlocks);
           }}
           theme={document.documentElement.getAttribute('data-theme') || 'light'}
+          className="flex-1 h-full min-h-0 overflow-y-auto"
         />
       </div>
       

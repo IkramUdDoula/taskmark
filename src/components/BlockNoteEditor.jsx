@@ -65,6 +65,9 @@ export default function BlockNoteEditor({ initialContent, onChange, theme = "lig
       <style jsx global>{`
         .blocknote-editor {
           background: transparent !important;
+          max-height: auto;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
         }
         .blocknote-editor .bn-container {
           background: transparent !important;
@@ -78,6 +81,11 @@ export default function BlockNoteEditor({ initialContent, onChange, theme = "lig
           padding-top: 8px !important; /* Specific top padding for desktop */
           padding-bottom: 8px !important; /* Specific bottom padding for desktop */
           border: none !important; /* Remove inner border */
+          @media (max-width: 640px) {
+            padding: 0 12px !important; /* Adjusted padding for mobile */
+            padding-top: 6px !important;
+            padding-bottom: 6px !important;
+          }
         }
         .blocknote-editor .bn-toolbar {
           background: var(--bg-tertiary) !important;

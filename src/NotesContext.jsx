@@ -3,6 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 // IndexedDB helper
 const DB_NAME = 'taskmark-db';
 const STORE_NAME = 'notes';
+const DB_VERSION = 2; // Ensure this matches the highest version ever used
 
 // Helper function for deep cleaning serializable data, handling circular references
 function deepCleanSerializable(obj, visited = new WeakSet()) {
@@ -101,7 +102,7 @@ function serializeBlockData(block) {
 
 function openDB() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
     request.onupgradeneeded = (e) => {
       const db = e.target.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
