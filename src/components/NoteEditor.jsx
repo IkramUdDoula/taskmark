@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import BlockNoteEditor from "./BlockNoteEditor";
 
 function formatDate(dateString) {
   const d = new Date(dateString);
@@ -77,7 +78,7 @@ export default function NoteEditor({ note, onSave, onDelete }) {
   };
 
   useEffect(() => {
-    if (!blocks) return;
+    if (!blocks || !Array.isArray(blocks)) return;
     
     let totalWords = 0;
     let totalLines = 0;
@@ -134,21 +135,14 @@ export default function NoteEditor({ note, onSave, onDelete }) {
       </div>
       
       <div className="flex-1 min-h-0 p-2 sm:p-4">
-        {blocks.map((block, index) => (
-          <div key={block.id} className="h-full">
-            <textarea
-              className="w-full h-full p-2 bg-transparent text-[var(--text-primary)] resize-none focus:outline-none font-mono text-base leading-relaxed"
-              value={block.text}
-              onChange={(e) => {
-                handleTextChange(index, e.target.value);
-              }}
-              onInput={(e) => {
-                // Future: any specific onInput logic if needed, e.g. live parsing
-              }}
-              placeholder={index === 0 ? "Start typing..." : ""}
-            />
-          </div>
-        ))}
+        <BlockNoteEditor
+          initialContent={blocks}
+          onChange={(newBlocks) => {
+            setBlocks(newBlocks);
+            handleSave(title, newBlocks);
+          }}
+          theme={document.documentElement.getAttribute('data-theme') || 'light'}
+        />
       </div>
       
       <div className="relative">
@@ -253,4 +247,4 @@ export default function NoteEditor({ note, onSave, onDelete }) {
       </div>
     </div>
   );
-} 
+}

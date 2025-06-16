@@ -34,8 +34,14 @@ async function saveNote(note) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite');
     const store = tx.objectStore(STORE_NAME);
-    // Ensure tags array exists
-    const noteWithTags = { ...note, tags: note.tags || [] };
+    // Ensure tags array exists and remove any non-serializable data
+    const noteWithTags = {
+      ...note,
+      tags: note.tags || [],
+      blocks: note.blocks ? JSON.parse(JSON.stringify(note.blocks)) : [],
+      content: note.content || '',
+      checklist: note.checklist || []
+    };
     const req = store.put(noteWithTags);
     req.onsuccess = () => resolve();
     req.onerror = () => reject(req.error);
@@ -71,9 +77,14 @@ export function NotesProvider({ children }) {
   const addOrUpdateNote = async (note) => {
     // For backward compatibility: always save content and checklist fields
     let patched = { ...note };
-    if (note.blocks) {
+    if (note.blocks && Array.isArray(note.blocks) && note.blocks.length > 0 && note.blocks[0].type === 'text') {
+      // Legacy format: extract plain text and checklist
       patched.content = note.blocks.filter(b => b.type === 'text').map(b => b.text).join('\n\n');
       patched.checklist = note.blocks.find(b => b.type === 'checklist')?.items || [];
+    } else {
+      // For BlockNote blocks, optionally extract plain text if needed (future: use BlockNote API)
+      patched.content = '';
+      patched.checklist = [];
     }
     await saveNote(patched);
     setNotes((prev) => {
