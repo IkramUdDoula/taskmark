@@ -160,3 +160,43 @@ a {
 a:hover {
   color: var(--accent-light);
 }
+
+/* BlockNote Custom Styles */
+.blocknote-editor {
+  --bn-colors-editor-background: var(--bg-tertiary);
+  --bn-colors-editor-text: var(--text-primary);
+  --bn-colors-menu-background: var(--bg-secondary);
+  --bn-colors-menu-text: var(--text-primary);
+  --bn-colors-menu-hover: var(--hover);
+  --bn-colors-tooltip-background: var(--bg-tertiary);
+  --bn-colors-tooltip-text: var(--text-primary);
+  --bn-colors-block-background: var(--bg-tertiary);
+  --bn-colors-block-text: var(--text-primary);
+  --bn-colors-block-hover: var(--hover);
+  --bn-border-radius: 0.5rem;
+  --bn-border-color: var(--border);
+  font-family: 'Fira Code', 'Fira Mono', 'JetBrains Mono', 'Menlo', 'Consolas', monospace !important;
+}
+
+/* Style BlockNote menus and tooltips */
+.blocknote-editor .bn-menu {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border) !important;
+  color: var(--text-primary) !important;
+}
+
+.blocknote-editor .bn-tooltip {
+  background-color: var(--bg-tertiary) !important;
+  border-color: var(--border) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Style BlockNote blocks */
+.blocknote-editor .bn-block {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+}
+
+.blocknote-editor .bn-block:hover {
+  background-color: var(--hover) !important;
+}

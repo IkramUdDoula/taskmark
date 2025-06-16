@@ -1,4 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { BlockNoteViewRaw, useBlockNote } from "@blocknote/react";
+import "@blocknote/core/fonts/inter.css";
+import { blockNoteTheme } from '../config/blockNoteTheme';
+import { blockStyles } from '../config/blockStyles';
+import { useTheme } from '../hooks/useTheme';
 
 function formatDate(dateString) {
   const d = new Date(dateString);
@@ -7,49 +12,87 @@ function formatDate(dateString) {
 }
 
 const defaultBlocks = [
-  { type: 'text', text: '' } // New notes start with a single, empty text block
+  {
+    type: "paragraph",
+    content: "",
+    props: {}
+  }
 ];
+
+function convertExistingBlocks(blocks) {
+  if (!blocks || blocks.length === 0) {
+    return defaultBlocks;
+  }
+
+  return blocks.map(block => {
+    if (block.type === 'text') {
+      return {
+        type: "paragraph",
+        content: block.text || "",
+        props: {}
+      };
+    }
+    return {
+      ...block,
+      content: block.content || "",
+      props: block.props || {}
+    };
+  });
+}
 
 export default function NoteEditor({ note, onSave, onDelete }) {
   const [title, setTitle] = useState(note?.title || '');
-  const [blocks, setBlocks] = useState(note?.blocks && note.blocks.length > 0 ? note.blocks : defaultBlocks);
   const [stats, setStats] = useState({ words: 0, lines: 0 });
-  const [focusedBlockIdx, setFocusedBlockIdx] = useState(null);
   const [newTag, setNewTag] = useState('');
   const [isTagsExpanded, setIsTagsExpanded] = useState(false);
-  const textareaRefs = useRef([]);
-
-  useEffect(() => {
-    if (note) {
-      setTitle(note.title || '');
-      setBlocks(note.blocks && note.blocks.length > 0 ? note.blocks : defaultBlocks);
-    } else {
-      setTitle('');
-      setBlocks(defaultBlocks);
+  const { theme } = useTheme();
+  
+  // BlockNote editor instance with minimal configuration
+  const editor = useBlockNote({
+    initialContent: convertExistingBlocks(note?.blocks),
+    editorConfig: {
+      theme: theme === 'dark' ? blockNoteTheme.dark : blockNoteTheme.light,
+      styles: blockStyles
     }
-  }, [note]);
+  });
 
+  // Handle editor content changes
+  const handleEditorChange = (editor) => {
+    if (!editor) return;
+    const blocks = editor.topLevelBlocks;
+    handleSave(title, blocks);
+    updateStats(blocks);
+  };
+
+  // Update editor content when note changes
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (!note) return;
+    if (!editor) return;
 
-      if (e.altKey && e.key.toLowerCase() === 't') {
-        e.preventDefault();
-        setIsTagsExpanded(true);
-        setTimeout(() => {
-          const tagInput = document.querySelector('input[placeholder="Add tag..."]');
-          if (tagInput) {
-            tagInput.focus();
+    const updateEditorContent = async () => {
+      try {
+        if (note) {
+          setTitle(note.title || '');
+          const blocks = convertExistingBlocks(note.blocks);
+          if (blocks && blocks.length > 0) {
+            await editor.replaceBlocks(blocks);
           }
-        }, 100);
+        } else {
+          setTitle('');
+          await editor.replaceBlocks(defaultBlocks);
+        }
+      } catch (error) {
+        console.error('Error updating editor content:', error);
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [note]);
+    updateEditorContent();
+  }, [note, editor]);
+
+  const handleTitleChange = (e) => {
+    const newTitle = e.target.value;
+    setTitle(newTitle);
+    handleSave(newTitle, editor.topLevelBlocks);
+  };
 
   const handleSave = (newTitle, newBlocks) => {
     if (note) {
@@ -62,37 +105,22 @@ export default function NoteEditor({ note, onSave, onDelete }) {
     }
   };
 
-  const handleTitleChange = (e) => {
-    const newTitle = e.target.value;
-    setTitle(newTitle);
-    handleSave(newTitle, blocks);
-  };
-
-  const handleTextChange = (blockIndex, newText) => {
-    const newBlocks = blocks.map((block, idx) =>
-      idx === blockIndex ? { ...block, text: newText } : block
-    );
-    setBlocks(newBlocks);
-    handleSave(title, newBlocks);
-  };
-
-  useEffect(() => {
-    if (!blocks) return;
-    
+  const updateStats = (blocks) => {
     let totalWords = 0;
     let totalLines = 0;
     
     blocks.forEach(block => {
-      if (block.text) {
-        const words = block.text.trim() ? block.text.trim().split(/\s+/).length : 0;
-        const lines = block.text ? block.text.split('\n').length : 0;
+      if (block.content) {
+        const text = typeof block.content === 'string' ? block.content : block.content.map(c => c.text).join(' ');
+        const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+        const lines = text ? text.split('\n').length : 0;
         totalWords += words;
         totalLines += lines;
       }
     });
     
     setStats({ words: totalWords, lines: totalLines });
-  }, [blocks]);
+  };
 
   const handleAddTag = (e) => {
     e.preventDefault();
@@ -134,21 +162,15 @@ export default function NoteEditor({ note, onSave, onDelete }) {
       </div>
       
       <div className="flex-1 min-h-0 p-2 sm:p-4">
-        {blocks.map((block, index) => (
-          <div key={block.id} className="h-full">
-            <textarea
-              className="w-full h-full p-2 bg-transparent text-[var(--text-primary)] resize-none focus:outline-none font-mono text-base leading-relaxed"
-              value={block.text}
-              onChange={(e) => {
-                handleTextChange(index, e.target.value);
-              }}
-              onInput={(e) => {
-                // Future: any specific onInput logic if needed, e.g. live parsing
-              }}
-              placeholder={index === 0 ? "Start typing..." : ""}
-            />
-          </div>
-        ))}
+        {editor && (
+          <BlockNoteViewRaw 
+            editor={editor}
+            className="blocknote-editor"
+            onChange={handleEditorChange}
+            theme={theme === 'dark' ? 'dark' : 'light'}
+            editable={true}
+          />
+        )}
       </div>
       
       <div className="relative">
