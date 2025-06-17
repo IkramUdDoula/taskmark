@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 import CustomSlashMenuController from "./CustomSlashMenu.jsx";
@@ -12,75 +12,97 @@ import "@blocknote/mantine/style.css";
  * @param {Function} props.onChange - Callback when content changes
  * @param {string} props.theme - Theme string (e.g., 'light', 'dark', 'pastel')
  */
-export default function BlockNoteEditor({ noteId, initialContent, onChange, theme = "light" }) {
+export default function BlockNoteEditor({ noteId, initialContent, onChange, theme = "light", className = "" }) {
   // Always create the editor instance
   // Initialize editor with initialContent so content appears immediately upon mount
   // Initialize the editor **without** any initial blocks.
   // We will safely inject the real content later inside `setEditorContent`.
   const editor = useCreateBlockNote();
   // Use a ref to store the stringified content that was last successfully applied to the editor
-  // Track the content that has already been pushed into the editor
-  // Start with an *empty* document so the very first effect run will push `initialContent`.
   const lastAppliedContentStr = useRef(JSON.stringify([]));
   // Flag to ignore onChange events triggered by our own programmatic updates
   const isApplyingContentRef = useRef(false);
+  // Track if we're currently handling a key press
+  const isHandlingKeyPress = useRef(false);
+  // Track if the current change is from user input
+  const isUserInput = useRef(false);
+  // Store the last selection to restore cursor position
+  const lastSelection = useRef(null);
+  // Store pending changes during rapid key presses
+  const pendingChanges = useRef(null);
+  // Debounce timer for handling rapid key presses
+  const debounceTimer = useRef(null);
 
   // Only reset editor content when the noteId changes (i.e., when switching notes)
   useEffect(() => {
     async function setEditorContent() {
-      console.log("--- useEffect: setEditorContent --- START");
-      console.log("initialContent (prop):", initialContent);
-      console.log("editor.document (current):", editor.document);
-      console.log("lastAppliedContentStr.current (ref):", lastAppliedContentStr.current);
-
+      if (isUserInput.current) return;
+      
       if (!initialContent) {
-        console.log("initialContent is empty. Checking editor.document...");
         if (editor.document.length > 0 && lastAppliedContentStr.current !== JSON.stringify([])) {
-            console.log("Clearing editor content.");
-            editor.replaceBlocks(editor.document, []);
-            lastAppliedContentStr.current = JSON.stringify([]);
+          isApplyingContentRef.current = true;
+          await editor.replaceBlocks(editor.document, []);
+          lastAppliedContentStr.current = JSON.stringify([]);
+          isApplyingContentRef.current = false;
         }
-        console.log("--- useEffect: setEditorContent --- END (initialContent empty)");
         return;
       }
 
       const newContentStr = JSON.stringify(initialContent);
 
       if (newContentStr !== lastAppliedContentStr.current) {
-        console.log("Content mismatch detected. Updating editor.");
-        if (Array.isArray(initialContent) && initialContent[0]?.type === "text") {
-          const html = initialContent.map(b => b.text).join("<br><br>");
-          const blocks = await editor.tryParseHTMLToBlocks(html);
-          editor.replaceBlocks(editor.document, blocks);
-        } else if (typeof initialContent === "string") {
-          const blocks = await editor.tryParseHTMLToBlocks(initialContent);
-          editor.replaceBlocks(editor.document, blocks);
-        } else if (Array.isArray(initialContent) && initialContent[0]?.type) {
-          // Assume already BlockNote blocks
-          isApplyingContentRef.current = true;
-          editor.replaceBlocks(editor.document, initialContent);
+        isApplyingContentRef.current = true;
+        
+        try {
+          if (Array.isArray(initialContent) && initialContent[0]?.type) {
+            // Save current selection if it exists
+            const selection = window.getSelection();
+            const range = selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
+            
+            await editor.replaceBlocks(editor.document, initialContent);
+            
+            // Try to restore selection if it was within the editor
+            if (range && editor.domElement.contains(range.commonAncestorContainer)) {
+              try {
+                selection.removeAllRanges();
+                selection.addRange(range);
+              } catch (e) {
+                console.warn('Could not restore selection:', e);
+              }
+            }
+          }
+          
+          lastAppliedContentStr.current = newContentStr;
+        } catch (error) {
+          console.error('Error updating editor content:', error);
+        } finally {
           isApplyingContentRef.current = false;
         }
-        lastAppliedContentStr.current = newContentStr; // Update the ref with the newly applied content
-        console.log("Editor updated. lastAppliedContentStr.current now:", lastAppliedContentStr.current);
-      } else {
-        console.log("Content is already in sync. No editor update needed.");
       }
-      console.log("--- useEffect: setEditorContent --- END");
     }
+    
     setEditorContent();
   }, [noteId, editor, initialContent]);
 
   return (
-    <div className={`blocknote-editor blocknote-theme-${theme} h-full`}>
+    <div className={`blocknote-editor blocknote-theme-${theme} h-full ${className}`}>
       <style>{`
         .blocknote-editor {
+          /* Layout to allow internal scrolling instead of page grow */
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+
           background: transparent !important;
-          max-height: auto;
-          overflow-y: auto;
+          overflow-y: auto; /* Allow scrolling within editor */
           -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
         }
         .blocknote-editor .bn-container {
+          display: flex;
+          flex-direction: column;
+          flex: 1 1 auto;
+          min-height: 0;
+
           background: transparent !important;
           border: none !important;
           box-shadow: none !important;
@@ -92,6 +114,10 @@ export default function BlockNoteEditor({ noteId, initialContent, onChange, them
           padding-top: 8px !important; /* Specific top padding for desktop */
           padding-bottom: 8px !important; /* Specific bottom padding for desktop */
           border: none !important; /* Remove inner border */
+          flex: 1 1 auto !important;
+          min-height: 0 !important;
+          max-height: 100% !important;
+          overflow-y: auto !important;
           @media (max-width: 640px) {
             padding: 0 12px !important; /* Adjusted padding for mobile */
             padding-top: 6px !important;
@@ -152,27 +178,63 @@ export default function BlockNoteEditor({ noteId, initialContent, onChange, them
       `}</style>
       <BlockNoteView
         editor={editor}
-        onChange={() => {
-          const currentEditorContentStr = JSON.stringify(editor.document);
-          console.log("--- BlockNoteView onChange --- START");
-          console.log("editor.document stringified:", currentEditorContentStr);
-          console.log("lastAppliedContentStr.current (before check):", lastAppliedContentStr.current);
-
-          if (!isApplyingContentRef.current && lastAppliedContentStr.current !== currentEditorContentStr) {
-              console.log("Parent onChange triggered. Updating lastAppliedContentStr.current.");
-              // Deep clone to avoid passing non-serializable editor internals
-              const cloned = JSON.parse(JSON.stringify(editor.document));
-              onChange(cloned);
-              lastAppliedContentStr.current = JSON.stringify(cloned);
-          } else {
-              console.log("Editor content not actually changed. No parent onChange needed.");
+        onKeyDown={() => {
+          isUserInput.current = true;
+          isHandlingKeyPress.current = true;
+          
+          // Clear any pending debounced updates when a new key is pressed
+          if (debounceTimer.current) {
+            clearTimeout(debounceTimer.current);
           }
-          console.log("--- BlockNoteView onChange --- END");
+        }}
+        onKeyUp={() => {
+          // Schedule the update to happen after a short delay
+          debounceTimer.current = setTimeout(() => {
+            isHandlingKeyPress.current = false;
+            
+            if (pendingChanges.current) {
+              const { currentContent, currentContentStr } = pendingChanges.current;
+              
+              // Only update if the content has actually changed
+              if (lastAppliedContentStr.current !== currentContentStr) {
+                isApplyingContentRef.current = true;
+                const cloned = JSON.parse(JSON.stringify(currentContent));
+                onChange(cloned);
+                lastAppliedContentStr.current = currentContentStr;
+                isApplyingContentRef.current = false;
+              }
+              
+              pendingChanges.current = null;
+            }
+            
+            isUserInput.current = false;
+          }, 50);
+        }}
+        onChange={() => {
+          if (isApplyingContentRef.current) return;
+          
+          const currentContent = editor.document;
+          const currentContentStr = JSON.stringify(currentContent);
+          
+          // Only process changes if the content has actually changed
+          if (lastAppliedContentStr.current !== currentContentStr) {
+            if (isHandlingKeyPress.current) {
+              // If we're in the middle of a key press, store the change but don't apply it yet
+              pendingChanges.current = { currentContent, currentContentStr };
+            } else {
+              // If not in a key press (programmatic change), apply immediately
+              isApplyingContentRef.current = true;
+              const cloned = JSON.parse(JSON.stringify(currentContent));
+              onChange(cloned);
+              lastAppliedContentStr.current = currentContentStr;
+              isApplyingContentRef.current = false;
+            }
+          }
         }}
         sideMenu={false}
-        editable={true} // Explicitly set editor to be editable
-        slashMenu={false} // Disable default slash menu
-        formattingToolbar={false} // Disable inline formatting popup
+        editable={true}
+        slashMenu={false}
+        formattingToolbar={false}
       >
         {/* Custom Slash Menu Controller for only allowed commands */}
         <CustomSlashMenuController editor={editor} />

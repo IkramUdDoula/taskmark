@@ -134,7 +134,16 @@ export default function NoteEditor({ note, onSave, onDelete }) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-lg overflow-hidden">
+    <div
+  className="flex flex-col h-full bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-lg overflow-hidden max-h-screen-mobile"
+>
+      <style>{`
+        @media (max-width: 640px) {
+          .max-h-screen-mobile {
+            max-height: calc(100dvh - env(safe-area-inset-bottom, 0px));
+          }
+        }
+      `}</style>
       <div className="shrink-0 border-b border-[var(--border)] bg-[var(--bg-tertiary)]">
         <input
           type="text"
@@ -145,7 +154,7 @@ export default function NoteEditor({ note, onSave, onDelete }) {
         />
       </div>
       
-      <div className="flex-1 min-h-0 flex flex-col">
+      <div className="flex-1 min-h-0 flex flex-col overflow-y-auto">
         <BlockNoteEditor
           key={note?.id}
           noteId={note?.id}

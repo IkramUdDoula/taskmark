@@ -144,7 +144,10 @@ function App() {
         <SpeedInsights />
         <footer className="bg-[var(--bg-secondary)] border-t border-[var(--border)] p-3 mx-4 mb-4 flex items-center rounded-lg">
           <div className="flex items-center">
-            <h1 className="text-lg font-bold text-[var(--text-primary)] ml-2 font-mono">&lt;taskmark&gt;</h1>
+            {/* Desktop Logo */}
+            <h1 className="hidden sm:block text-lg font-bold text-[var(--text-primary)] ml-2 font-mono">&lt;taskmark&gt;</h1>
+            {/* Mobile Logo */}
+            <h1 className="sm:hidden text-lg font-bold text-[var(--text-primary)] ml-2 font-mono">&lt;t&gt;</h1>
           </div>
           
           <div className="flex-1"></div>
