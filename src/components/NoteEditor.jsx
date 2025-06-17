@@ -8,12 +8,21 @@ function formatDate(dateString) {
 }
 
 const defaultBlocks = [
-  { type: 'text', text: '' } // New notes start with a single, empty text block
+  {
+    id: Date.now().toString(),
+    type: 'paragraph',
+    props: {},
+    content: [],
+    children: []
+  }
 ];
 
 export default function NoteEditor({ note, onSave, onDelete }) {
   const [title, setTitle] = useState(note?.title || '');
+  // Editor's live blocks state
   const [blocks, setBlocks] = useState(note?.blocks && note.blocks.length > 0 ? note.blocks : defaultBlocks);
+  // Initial blocks passed to BlockNoteEditor; changes only when note id changes
+  const [initialBlocks, setInitialBlocks] = useState(blocks);
   const [stats, setStats] = useState({ words: 0, lines: 0 });
   const [focusedBlockIdx, setFocusedBlockIdx] = useState(null);
   const [newTag, setNewTag] = useState('');
@@ -23,7 +32,9 @@ export default function NoteEditor({ note, onSave, onDelete }) {
   useEffect(() => {
     if (note) {
       setTitle(note.title || '');
-      setBlocks(note.blocks && note.blocks.length > 0 ? note.blocks : defaultBlocks);
+      const freshBlocks = note.blocks && note.blocks.length > 0 ? note.blocks : defaultBlocks;
+      setBlocks(freshBlocks);
+      setInitialBlocks(freshBlocks);
     } else {
       setTitle('');
       setBlocks(defaultBlocks);
@@ -136,7 +147,9 @@ export default function NoteEditor({ note, onSave, onDelete }) {
       
       <div className="flex-1 min-h-0 flex flex-col">
         <BlockNoteEditor
-          initialContent={blocks}
+          key={note?.id}
+          noteId={note?.id}
+          initialContent={initialBlocks}
           onChange={(newBlocks) => {
             setBlocks(newBlocks);
             handleSave(title, newBlocks);

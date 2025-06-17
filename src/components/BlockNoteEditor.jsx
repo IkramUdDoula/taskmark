@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
+import CustomSlashMenuController from "./CustomSlashMenu.jsx";
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/mantine/style.css";
 
@@ -11,12 +12,20 @@ import "@blocknote/mantine/style.css";
  * @param {Function} props.onChange - Callback when content changes
  * @param {string} props.theme - Theme string (e.g., 'light', 'dark', 'pastel')
  */
-export default function BlockNoteEditor({ initialContent, onChange, theme = "light" }) {
+export default function BlockNoteEditor({ noteId, initialContent, onChange, theme = "light" }) {
   // Always create the editor instance
+  // Initialize editor with initialContent so content appears immediately upon mount
+  // Initialize the editor **without** any initial blocks.
+  // We will safely inject the real content later inside `setEditorContent`.
   const editor = useCreateBlockNote();
   // Use a ref to store the stringified content that was last successfully applied to the editor
-  const lastAppliedContentStr = useRef(JSON.stringify(initialContent || []));
+  // Track the content that has already been pushed into the editor
+  // Start with an *empty* document so the very first effect run will push `initialContent`.
+  const lastAppliedContentStr = useRef(JSON.stringify([]));
+  // Flag to ignore onChange events triggered by our own programmatic updates
+  const isApplyingContentRef = useRef(false);
 
+  // Only reset editor content when the noteId changes (i.e., when switching notes)
   useEffect(() => {
     async function setEditorContent() {
       console.log("--- useEffect: setEditorContent --- START");
@@ -48,7 +57,9 @@ export default function BlockNoteEditor({ initialContent, onChange, theme = "lig
           editor.replaceBlocks(editor.document, blocks);
         } else if (Array.isArray(initialContent) && initialContent[0]?.type) {
           // Assume already BlockNote blocks
+          isApplyingContentRef.current = true;
           editor.replaceBlocks(editor.document, initialContent);
+          isApplyingContentRef.current = false;
         }
         lastAppliedContentStr.current = newContentStr; // Update the ref with the newly applied content
         console.log("Editor updated. lastAppliedContentStr.current now:", lastAppliedContentStr.current);
@@ -58,11 +69,11 @@ export default function BlockNoteEditor({ initialContent, onChange, theme = "lig
       console.log("--- useEffect: setEditorContent --- END");
     }
     setEditorContent();
-  }, [initialContent, editor]);
+  }, [noteId, editor, initialContent]);
 
   return (
     <div className={`blocknote-editor blocknote-theme-${theme} h-full`}>
-      <style jsx global>{`
+      <style>{`
         .blocknote-editor {
           background: transparent !important;
           max-height: auto;
@@ -147,10 +158,12 @@ export default function BlockNoteEditor({ initialContent, onChange, theme = "lig
           console.log("editor.document stringified:", currentEditorContentStr);
           console.log("lastAppliedContentStr.current (before check):", lastAppliedContentStr.current);
 
-          if (lastAppliedContentStr.current !== currentEditorContentStr) {
+          if (!isApplyingContentRef.current && lastAppliedContentStr.current !== currentEditorContentStr) {
               console.log("Parent onChange triggered. Updating lastAppliedContentStr.current.");
-              onChange(editor.document);
-              lastAppliedContentStr.current = currentEditorContentStr;
+              // Deep clone to avoid passing non-serializable editor internals
+              const cloned = JSON.parse(JSON.stringify(editor.document));
+              onChange(cloned);
+              lastAppliedContentStr.current = JSON.stringify(cloned);
           } else {
               console.log("Editor content not actually changed. No parent onChange needed.");
           }
@@ -158,7 +171,12 @@ export default function BlockNoteEditor({ initialContent, onChange, theme = "lig
         }}
         sideMenu={false}
         editable={true} // Explicitly set editor to be editable
-      />
+        slashMenu={false} // Disable default slash menu
+        formattingToolbar={false} // Disable inline formatting popup
+      >
+        {/* Custom Slash Menu Controller for only allowed commands */}
+        <CustomSlashMenuController editor={editor} />
+      </BlockNoteView>
     </div>
   );
 }
