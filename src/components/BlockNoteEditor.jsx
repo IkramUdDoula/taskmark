@@ -110,16 +110,20 @@ export default function BlockNoteEditor({ noteId, initialContent, onChange, them
         .blocknote-editor .bn-editor {
           background: transparent !important;
           color: var(--text-primary) !important;
-          padding: 0 16px !important; /* Default padding for desktop */
-          padding-top: 8px !important; /* Specific top padding for desktop */
-          padding-bottom: 8px !important; /* Specific bottom padding for desktop */
-          border: none !important; /* Remove inner border */
+          padding: 0 16px !important;
+          padding-top: 8px !important;
+          padding-bottom: 8px !important;
+          border: none !important;
           flex: 1 1 auto !important;
           min-height: 0 !important;
           max-height: 100% !important;
           overflow-y: auto !important;
+          overflow-x: hidden !important; /* Prevent horizontal scrollbar */
+          word-wrap: break-word !important; /* Ensure long words break */
+          white-space: pre-wrap !important; /* Preserve line breaks and wrap text */
+          width: 100% !important; /* Ensure full width */
           @media (max-width: 640px) {
-            padding: 0 12px !important; /* Adjusted padding for mobile */
+            padding: 0 12px !important;
             padding-top: 6px !important;
             padding-bottom: 6px !important;
           }
@@ -168,11 +172,28 @@ export default function BlockNoteEditor({ noteId, initialContent, onChange, them
           background: var(--hover) !important;
         }
 
-        @media (min-width: 640px) { /* Equivalent to sm: breakpoint in Tailwind */
+        /* Ensure content within blocks wraps properly */
+        .blocknote-editor .bn-block-content {
+          width: 100% !important;
+          max-width: 100% !important;
+          overflow-wrap: break-word !important;
+          word-wrap: break-word !important;
+          word-break: break-word !important;
+        }
+
+        /* Fix for code blocks and other pre-formatted content */
+        .blocknote-editor pre,
+        .blocknote-editor code {
+          white-space: pre-wrap !important;
+          word-break: break-word !important;
+          max-width: 100% !important;
+        }
+
+        @media (min-width: 640px) {
           .blocknote-editor .bn-editor {
-            padding: 0 24px !important; /* Equivalent to sm:p-4 for desktop */
-            padding-top: 16px !important; /* Equivalent to sm:p-4 for desktop */
-            padding-bottom: 16px !important; /* Equivalent to sm:p-4 for desktop */
+            padding: 0 24px !important;
+            padding-top: 16px !important;
+            padding-bottom: 16px !important;
           }
         }
       `}</style>
