@@ -65,7 +65,7 @@ export const SearchBar = ({
             <div className="w-full max-w-2xl mx-4">
               <div className="relative bg-[var(--bg-secondary)] rounded-lg shadow-2xl border border-[var(--border)] transform transition-all duration-200 ease-out scale-100 opacity-100">
                 <div className="flex items-center px-4 py-3 border-b border-[var(--border)]">
-                  <svg className="w-5 h-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                   </svg>
                   <input
@@ -85,18 +85,20 @@ export const SearchBar = ({
                         setSearchQuery('');
                       }}
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
                       </svg>
                     </button>
                   )}
                 </div>
                 {suggestions.length > 0 && (
-                  <div>
+                  <div className="max-h-[60vh] overflow-y-auto">
                     {suggestions.map((note, index) => (
                       <div
                         key={note.id}
-                        className={`px-4 py-3 cursor-pointer flex items-start space-x-3 hover:bg-[var(--hover)] transition-colors ${index === selectedIndex ? 'bg-[var(--hover)]' : ''}`}
+                        className={`px-4 py-3 cursor-pointer flex items-start space-x-3 hover:bg-[var(--hover)] transition-colors ${
+                          index === selectedIndex ? 'bg-[var(--hover)]' : ''
+                        }`}
                         onClick={() => {
                           notesAppRef.current?.selectNote(note.id);
                           setIsSearchOpen(false);
@@ -157,7 +159,7 @@ export const SearchBar = ({
             aria-label="Search notes"
             title="Search Notes (Alt+S)"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
           </button>

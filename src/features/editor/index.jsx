@@ -10,9 +10,15 @@ export const Editor = () => {
     title,
     blocks,
     stats,
+    newTag,
+    isTagsExpanded,
     onTitleChange,
     onContentChange,
-    onDelete
+    onDelete,
+    onAddTag,
+    onRemoveTag,
+    onTagInputChange,
+    onTagsExpand
   } = useEditor();
 
   if (!note) {
@@ -22,7 +28,17 @@ export const Editor = () => {
   return (
     <main className="editor-container flex flex-col h-full bg-[var(--bg-tertiary)] border border-[var(--border)] rounded-lg overflow-hidden">
       <EditorHeader title={title} onTitleChange={onTitleChange} />
-      <EditorContent blocks={blocks} onContentChange={onContentChange} />
+      <EditorContent 
+        blocks={blocks} 
+        onContentChange={onContentChange}
+        note={note}
+        newTag={newTag}
+        isTagsExpanded={isTagsExpanded}
+        onAddTag={onAddTag}
+        onRemoveTag={onRemoveTag}
+        onTagInputChange={onTagInputChange}
+        onTagsExpand={onTagsExpand}
+      />
       <EditorFooter note={note} onDelete={onDelete} stats={stats} />
     </main>
   );

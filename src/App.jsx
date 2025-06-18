@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { AppProvider, useAppContext } from './contexts/AppContext';
 import { NotesProvider, useNotes } from './contexts/NotesContext';
 import Notification from './Notification';
@@ -10,6 +10,41 @@ import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import './index.css';
+
+class NotesApp {
+  constructor(notes, searchQuery, setSelectedNoteId) {
+    this.notes = notes;
+    this.searchQuery = searchQuery;
+    this.setSelectedNoteId = setSelectedNoteId;
+  }
+
+  getFilteredNotes() {
+    if (!this.searchQuery) return this.notes;
+    
+    const query = this.searchQuery.toLowerCase();
+    return this.notes.filter(note => {
+      // Format dates for searching
+      const createdDate = new Date(note.created).toLocaleString().toLowerCase();
+      const updatedDate = new Date(note.updated || note.created).toLocaleString().toLowerCase();
+      
+      return (
+        (note.title && note.title.toLowerCase().includes(query)) ||
+        (note.blocks && note.blocks.some(block => 
+          block.type === 'text' && block.text.toLowerCase().includes(query)
+        )) ||
+        (note.tags && note.tags.some(tag => 
+          tag.toLowerCase().includes(query)
+        )) ||
+        createdDate.includes(query) ||
+        updatedDate.includes(query)
+      );
+    });
+  }
+
+  selectNote(id) {
+    this.setSelectedNoteId(id);
+  }
+}
 
 function NotificationWrapper() {
   const { lastDeletedNote, undoDelete } = useNotes();
@@ -36,9 +71,15 @@ function NotificationWrapper() {
 function MainContent() {
   const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { notes, addNote, deleteNote } = useNotes();
+  const { selectedNoteId, setSelectedNoteId, searchQuery } = useAppContext();
+  
   const notesAppRef = useRef(null);
-  const { addNote, deleteNote } = useNotes();
-  const { selectedNoteId, setSelectedNoteId } = useAppContext();
+  
+  // Update notesAppRef when dependencies change
+  useEffect(() => {
+    notesAppRef.current = new NotesApp(notes, searchQuery, setSelectedNoteId);
+  }, [notes, searchQuery, setSelectedNoteId]);
 
   const handleAddNote = () => {
     const newNoteId = addNote();
@@ -47,7 +88,24 @@ function MainContent() {
 
   const handleDeleteNote = () => {
     if (selectedNoteId) {
+      const currentIndex = notes.findIndex(note => note.id === selectedNoteId);
       deleteNote(selectedNoteId);
+      
+      // After deletion, select the next note if available, otherwise the previous note
+      setTimeout(() => {
+        const remaining = notes.filter(note => note.id !== selectedNoteId);
+        if (remaining.length > 0) {
+          // If we're deleting the last note, select the previous one
+          if (currentIndex === remaining.length) {
+            setSelectedNoteId(remaining[currentIndex - 1].id);
+          } else {
+            // Otherwise select the next note
+            setSelectedNoteId(remaining[currentIndex].id);
+          }
+        } else {
+          setSelectedNoteId(null);
+        }
+      }, 100);
     }
   };
 
