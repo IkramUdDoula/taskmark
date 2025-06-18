@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNotes } from './NotesContext';
+import { useNotes } from './contexts/NotesContext';
 
 function formatDate(dateString) {
   const d = new Date(dateString);
