@@ -117,7 +117,7 @@ export default function RecycleBinModal({ isOpen, onClose }) {
           <div className="bg-[var(--bg-secondary)] px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
             <button
               type="button"
-              className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-[var(--accent)] text-base font-medium text-white hover:bg-[var(--accent-hover)] focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
+              className="w-full inline-flex justify-center rounded-md border border-[var(--border)] shadow-sm px-4 py-2 bg-[var(--bg-tertiary)] text-base font-medium text-[var(--text-primary)] hover:bg-[var(--hover)] focus:outline-none sm:ml-3 sm:w-auto sm:text-sm"
               onClick={onClose}
             >
               Close

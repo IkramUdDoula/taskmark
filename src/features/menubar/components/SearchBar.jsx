@@ -20,7 +20,7 @@ export const SearchBar = ({
 
   useEffect(() => {
     if (searchQuery && notesAppRef?.current) {
-      const filteredNotes = notesAppRef.current.getFilteredNotes();
+      const filteredNotes = notesAppRef.current.getFilteredNotes(searchQuery);
       setSuggestions(filteredNotes.slice(0, 5));
     } else {
       setSuggestions([]);

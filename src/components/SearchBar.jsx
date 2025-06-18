@@ -22,7 +22,7 @@ function SearchBar({
   // Update suggestions when search query changes
   useEffect(() => {
     if (searchQuery && notesAppRef.current) {
-      const filteredNotes = notesAppRef.current.getFilteredNotes();
+      const filteredNotes = notesAppRef.current.getFilteredNotes(searchQuery);
       setSuggestions(filteredNotes.slice(0, 5)); // Show top 5 matches
     } else {
       setSuggestions([]);

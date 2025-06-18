@@ -18,15 +18,13 @@ class NotesApp {
     this.setSelectedNoteId = setSelectedNoteId;
   }
 
-  getFilteredNotes() {
-    if (!this.searchQuery) return this.notes;
-    
-    const query = this.searchQuery.toLowerCase();
+  getFilteredNotes(query) {
+    if (!query || query.trim() === '') return [];
+    query = query.toLowerCase();
     return this.notes.filter(note => {
       // Format dates for searching
       const createdDate = new Date(note.created).toLocaleString().toLowerCase();
       const updatedDate = new Date(note.updated || note.created).toLocaleString().toLowerCase();
-      
       return (
         (note.title && note.title.toLowerCase().includes(query)) ||
         (note.blocks && note.blocks.some(block => 

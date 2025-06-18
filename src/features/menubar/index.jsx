@@ -21,7 +21,10 @@ export const MenuBar = ({
   return (
     <footer className="bg-[var(--bg-secondary)] border-t border-[var(--border)] p-3 flex items-center rounded-lg">
       <div className="flex items-center">
-        <h1 className="text-lg font-bold text-[var(--text-primary)] ml-2 font-mono">&lt;taskmark&gt;</h1>
+        <h1 className="text-lg font-bold text-[var(--text-primary)] ml-2 font-mono">
+          <span className="sm:hidden">&lt;t&gt;</span>
+          <span className="hidden sm:inline">&lt;taskmark&gt;</span>
+        </h1>
       </div>
       <div className="flex-1"></div>
       <SearchBar
