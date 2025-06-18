@@ -81,7 +81,7 @@ export default defineConfig({
         ],
         cleanupOutdatedCaches: true,
         sourcemap: true,
-        navigationPreload: true
+        navigationPreload: false
       },
       devOptions: {
         enabled: true,

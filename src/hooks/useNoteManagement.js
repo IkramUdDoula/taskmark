@@ -41,11 +41,20 @@ export function useNoteManagement() {
   };
 
   const handleDelete = (id) => {
+    const currentIndex = sortedNotes.findIndex(note => note.id === id);
     removeNote(id);
+    
+    // After deletion, select the next note if available, otherwise the previous note
     setTimeout(() => {
       const remaining = sortedNotes.filter(n => n.id !== id);
       if (remaining.length > 0) {
-        setSelectedId(remaining[0].id);
+        // If we're deleting the last note, select the previous one
+        if (currentIndex === remaining.length) {
+          setSelectedId(remaining[currentIndex - 1].id);
+        } else {
+          // Otherwise select the next note
+          setSelectedId(remaining[currentIndex].id);
+        }
       } else {
         setSelectedId(null);
       }

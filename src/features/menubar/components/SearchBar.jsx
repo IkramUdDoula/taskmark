@@ -1,29 +1,27 @@
 import React, { useRef, useEffect, useState } from 'react';
 
-function SearchBar({ 
+export const SearchBar = ({ 
   isSearchOpen, 
   setIsSearchOpen, 
   searchQuery, 
   setSearchQuery, 
   onSearchSelect,
   notesAppRef
-}) {
+}) => {
   const searchInputRef = useRef(null);
   const [suggestions, setSuggestions] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
-  // Focus search input when search is opened
   useEffect(() => {
     if (isSearchOpen && searchInputRef.current) {
       searchInputRef.current.focus();
     }
   }, [isSearchOpen]);
 
-  // Update suggestions when search query changes
   useEffect(() => {
-    if (searchQuery && notesAppRef.current) {
+    if (searchQuery && notesAppRef?.current) {
       const filteredNotes = notesAppRef.current.getFilteredNotes(searchQuery);
-      setSuggestions(filteredNotes.slice(0, 5)); // Show top 5 matches
+      setSuggestions(filteredNotes.slice(0, 5));
     } else {
       setSuggestions([]);
     }
@@ -42,9 +40,7 @@ function SearchBar({
       }
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setSelectedIndex(prev => 
-        prev < suggestions.length - 1 ? prev + 1 : prev
-      );
+      setSelectedIndex(prev => prev < suggestions.length - 1 ? prev + 1 : prev);
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setSelectedIndex(prev => prev > -1 ? prev - 1 : -1);
@@ -95,8 +91,6 @@ function SearchBar({
                     </button>
                   )}
                 </div>
-
-                {/* Suggestions Panel */}
                 {suggestions.length > 0 && (
                   <div className="max-h-[60vh] overflow-y-auto">
                     {suggestions.map((note, index) => (
@@ -143,7 +137,6 @@ function SearchBar({
                     ))}
                   </div>
                 )}
-
                 <div className="px-4 py-2 text-sm text-[var(--text-secondary)] border-t border-[var(--border)]">
                   {suggestions.length > 0 ? (
                     <span>↑↓ to navigate, Enter to select, Esc to close</span>
@@ -174,6 +167,4 @@ function SearchBar({
       </div>
     </div>
   );
-}
-
-export default SearchBar; 
+}; 
