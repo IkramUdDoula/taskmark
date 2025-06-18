@@ -16,11 +16,17 @@ export const EditorContent = ({
     onAddTag(e);
   };
 
+  // Debug logging
+  console.log('blocks:', blocks);
+  console.log('block keys:', blocks.map((block, index) => `block-${block.id ?? index}`));
+  console.log('tags:', note?.tags);
+  console.log('tag keys:', note?.tags?.map((tag, index) => `tag-${tag}-${index}`));
+
   return (
     <div className="flex-1 min-h-0 p-2 sm:p-4 flex flex-col">
       <div className="flex-1">
         {blocks.map((block, index) => (
-          <div key={block.id} className="h-full">
+          <div key={`block-${block.id ?? index}`} className="h-full">
             <textarea
               className="w-full h-full bg-transparent text-[var(--text-primary)] resize-none focus:outline-none font-mono text-base leading-relaxed"
               value={block.text}
@@ -37,9 +43,9 @@ export const EditorContent = ({
         ${isTagsExpanded ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}
       `}>
         <div className="flex flex-wrap gap-2 items-center p-2">
-          {note?.tags?.map((tag) => (
+          {note?.tags?.map((tag, index) => (
             <span
-              key={tag}
+              key={`tag-${tag}-${index}`}
               className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-[var(--bg-tertiary)] text-[var(--text-primary)] border border-[var(--border)] hover:bg-[var(--hover)] transition-colors"
             >
               #{tag}
